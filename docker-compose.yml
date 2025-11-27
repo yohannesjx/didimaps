@@ -1,42 +1,85 @@
-version: '3'
+version: '3.8'
+
 services:
+  #####################################################
+  # TILESERVER GL (map tiles)
+  #####################################################
   tileserver:
-    image: maptiler/tileserver-gl
+    image: ghcr.io/klokantech/tileserver-gl-light:latest
+    container_name: tileserver
     ports:
       - "8080:80"
     volumes:
       - ./data/tiles:/data
+    restart: unless-stopped
 
+  #####################################################
+  # OSRM (routing engine)
+  #####################################################
   osrm:
-    image: osrm/osrm-backend
+    image: ghcr.io/project-osrm/osrm-backend:latest
+    container_name: osrm
     ports:
       - "5000:5000"
     volumes:
       - ./data/osrm:/data
-    command: ["--algorithm", "mld", "/data/monaco.osrm"]
+    command: >
+      osrm-routed --algorithm mld /data/monaco.osrm
+    restart: unless-stopped
 
-  photon:
-    image: docker.io/komoot/photon
-    ports:
-      - "2322:2322"
-    volumes:
-      - ./data/photon:/var/lib/photon
-    depends_on:
-      - elasticsearch
-
+  #####################################################
+  # ELASTICSEARCH (required by Photon)
+  # Photon ONLY works with Elasticsearch 2.x
+  #####################################################
   elasticsearch:
-    image: elasticsearch:7.17.0
+    image: elasticsearch:2.4.6
+    container_name: elasticsearch
     environment:
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms1g -Xmx2g
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "cluster.name=photon-cluster"
+      - "bootstrap.memory_lock=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     volumes:
       - ./data/esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    restart: unless-stopped
 
+  #####################################################
+  # PHOTON (geocoder)
+  # Official maintained image is here:
+  # https://github.com/photon-platform/photon
+  #####################################################
+  photon:
+    image: ghcr.io/photon-platform/photon:latest
+    container_name: photon
+    depends_on:
+      - elasticsearch
+    ports:
+      - "2322:2322"
+    environment:
+      - PHOTON_DB_DIR=/var/lib/photon
+    volumes:
+      - ./data/photon:/var/lib/photon
+    restart: unless-stopped
+
+  #####################################################
+  # YOUR GO API BACKEND
+  #####################################################
   api:
     build: ./api
+    container_name: backend_api
     ports:
       - "8000:8000"
     depends_on:
       - tileserver
       - osrm
       - photon
+    environment:
+      OSRM_URL: http://osrm:5000
+      PHOTON_URL: http://photon:2322
+      TILESERVER_URL: http://tileserver:80
+    restart: unless-stopped
