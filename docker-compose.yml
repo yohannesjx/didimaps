@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  #####################################################
-  # TILESERVER GL (map tiles)
-  #####################################################
+  #################################################
+  # TILESERVER GL (Docker Hub version)
+  #################################################
   tileserver:
-    image: ghcr.io/klokantech/tileserver-gl-light:latest
+    image: maptiler/tileserver-gl
     container_name: tileserver
     ports:
       - "8080:80"
@@ -13,11 +13,11 @@ services:
       - ./data/tiles:/data
     restart: unless-stopped
 
-  #####################################################
-  # OSRM (routing engine)
-  #####################################################
+  #################################################
+  # OSRM (Docker Hub version)
+  #################################################
   osrm:
-    image: ghcr.io/project-osrm/osrm-backend:latest
+    image: osrm/osrm-backend
     container_name: osrm
     ports:
       - "5000:5000"
@@ -27,59 +27,49 @@ services:
       osrm-routed --algorithm mld /data/monaco.osrm
     restart: unless-stopped
 
-  #####################################################
-  # ELASTICSEARCH (required by Photon)
-  # Photon ONLY works with Elasticsearch 2.x
-  #####################################################
+  #################################################
+  # ELASTICSEARCH 2.4 (Docker Hub version)
+  #################################################
   elasticsearch:
-    image: elasticsearch:2.4.6
+    image: docker.elastic.co/elasticsearch/elasticsearch:2.4.6
     container_name: elasticsearch
     environment:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - "cluster.name=photon-cluster"
-      - "bootstrap.memory_lock=true"
+      - "discovery.type=single-node"
     ulimits:
       memlock:
         soft: -1
         hard: -1
-    volumes:
-      - ./data/esdata:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
+    volumes:
+      - ./data/esdata:/usr/share/elasticsearch/data
     restart: unless-stopped
 
-  #####################################################
-  # PHOTON (geocoder)
-  # Official maintained image is here:
-  # https://github.com/photon-platform/photon
-  #####################################################
+  #################################################
+  # PHOTON (Docker Hub version)
+  #################################################
   photon:
-    image: ghcr.io/photon-platform/photon:latest
+    image: komoot/photon
     container_name: photon
-    depends_on:
-      - elasticsearch
     ports:
       - "2322:2322"
-    environment:
-      - PHOTON_DB_DIR=/var/lib/photon
+    depends_on:
+      - elasticsearch
     volumes:
       - ./data/photon:/var/lib/photon
     restart: unless-stopped
 
-  #####################################################
-  # YOUR GO API BACKEND
-  #####################################################
+  #################################################
+  # GO BACKEND
+  #################################################
   api:
     build: ./api
-    container_name: backend_api
+    container_name: api
     ports:
       - "8000:8000"
     depends_on:
-      - tileserver
       - osrm
       - photon
-    environment:
-      OSRM_URL: http://osrm:5000
-      PHOTON_URL: http://photon:2322
-      TILESERVER_URL: http://tileserver:80
+      - tileserver
     restart: unless-stopped
