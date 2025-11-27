@@ -1,0 +1,42 @@
+version: '3'
+services:
+  tileserver:
+    image: maptiler/tileserver-gl
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data/tiles:/data
+
+  osrm:
+    image: osrm/osrm-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data/osrm:/data
+    command: ["--algorithm", "mld", "/data/monaco.osrm"]
+
+  photon:
+    image: docker.io/komoot/photon
+    ports:
+      - "2322:2322"
+    volumes:
+      - ./data/photon:/var/lib/photon
+    depends_on:
+      - elasticsearch
+
+  elasticsearch:
+    image: elasticsearch:7.17.0
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx2g
+    volumes:
+      - ./data/esdata:/usr/share/elasticsearch/data
+
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - tileserver
+      - osrm
+      - photon
