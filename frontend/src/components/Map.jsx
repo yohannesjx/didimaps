@@ -74,6 +74,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             },
             center: [38.7578, 8.9806], // Addis Ababa
             zoom: 12,
+            padding: { left: 360 }, // Offset for sidebar
         });
 
         // Add navigation controls

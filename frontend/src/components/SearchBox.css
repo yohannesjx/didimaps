@@ -1,8 +1,9 @@
 /* Floating Search Box */
 .search-box-floating {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 16px;
+    left: 380px;
+    /* Offset by sidebar width + padding */
     z-index: 1000;
     display: flex;
     gap: 12px;
@@ -12,35 +13,42 @@
 .search-input-container {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
-    padding: 12px 16px;
-    gap: 12px;
-    min-width: 400px;
+    padding: 0 16px;
+    height: 48px;
+    width: 360px;
+    transition: box-shadow 0.2s;
+}
+
+.search-input-container:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .search-icon {
-    font-size: 20px;
-    color: #666;
+    font-size: 18px;
+    color: #777;
+    margin-right: 12px;
 }
 
 .search-input-main {
     flex: 1;
     border: none;
     outline: none;
-    font-size: 15px;
-    color: #333;
+    font-size: 16px;
+    color: #000;
+    height: 100%;
 }
 
 .search-input-main::placeholder {
-    color: #999;
+    color: #777;
 }
 
 .clear-search {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 20px;
     color: #999;
     cursor: pointer;
     padding: 4px;
@@ -50,58 +58,46 @@
     color: #333;
 }
 
-.add-business-btn {
-    background: #4285f4;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
-    white-space: nowrap;
-    transition: all 0.2s;
-}
-
-.add-business-btn:hover {
-    background: #3367d6;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(66, 133, 244, 0.4);
-}
-
-/* Floating Category Pills */
+/* Category Pills */
 .category-pills-floating {
     position: absolute;
-    top: 80px;
-    left: 20px;
+    top: 16px;
+    left: 760px;
+    /* Offset by sidebar + search box */
     z-index: 1000;
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
-    max-width: 600px;
+    align-items: center;
 }
 
 .category-pill {
     background: white;
     border: none;
-    border-radius: 20px;
-    padding: 10px 20px;
+    border-radius: 16px;
+    padding: 0 16px;
+    height: 36px;
     font-size: 14px;
     font-weight: 500;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
     color: #333;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .category-pill:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: #f5f5f5;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .category-pill.active {
-    background: #4285f4;
+    background: #000;
     color: white;
-    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.pill-icon {
+    font-size: 16px;
 }
