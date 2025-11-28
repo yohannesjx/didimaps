@@ -29,7 +29,7 @@ export default function BusinessCard({ business, isSelected, onClick }) {
                 <span className={business.status?.includes('Open') ? 'status-open' : 'status-closed'}>
                     {business.status}
                 </span>
-                <span className="business-category"> • {business.category}</span>
+                <span className="business-category"> • {business.category?.name || business.category}</span>
             </div>
 
             <div className="business-address">{business.address}</div>

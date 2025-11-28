@@ -172,7 +172,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
                 .setHTML(`
           <div style="padding: 8px;">
             <strong style="font-size: 14px;">${business.name}</strong><br/>
-            <span style="font-size: 12px; color: #666;">${business.category}</span>
+            <span style="font-size: 12px; color: #666;">${business.category?.name || business.category}</span>
           </div>
         `);
 
