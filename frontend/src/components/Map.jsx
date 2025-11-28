@@ -84,16 +84,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         // Add navigation controls (Zoom in/out) to bottom-right
         map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
 
-        // Add geolocate control
-        map.current.addControl(
-            new maplibregl.GeolocateControl({
-                positionOptions: {
-                    enableHighAccuracy: true,
-                },
-                trackUserLocation: true,
-            }),
-            'top-right'
-        );
+
 
         // Handle window resize to adjust padding dynamically
         const handleResize = () => {
