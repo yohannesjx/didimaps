@@ -16,6 +16,7 @@ function App() {
   const [directionsDestination, setDirectionsDestination] = useState(null);
   const [userLocation, setUserLocation] = useState({ lat: 9.0000, lng: 38.7500 }); // Default center
   const [mapCenter, setMapCenter] = useState({ lat: 9.0000, lng: 38.7500 });
+  const [mapZoom, setMapZoom] = useState(15);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Hidden by default
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -44,32 +45,50 @@ function App() {
   }, []);
 
   // Fetch businesses from API
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      setLoading(true);
-      try {
-        let url;
-        if (searchQuery) {
-          // Hybrid Search (Local + Nominatim)
-          url = `/api/business/search?q=${encodeURIComponent(searchQuery)}&lat=${userLocation.lat}&lng=${userLocation.lng}`;
+  // Fetch businesses from API
+  const fetchBusinesses = async (lat, lng, zoom = 15) => {
+    setLoading(true);
+    try {
+      let url;
+      if (searchQuery) {
+        // Hybrid Search (Local + Nominatim)
+        url = `/api/business/search?q=${encodeURIComponent(searchQuery)}&lat=${lat}&lng=${lng}`;
+      } else {
+        // Dynamic LOD: Adjust radius and limit based on zoom
+        let radius = 5000;
+        let limit = 50;
+
+        if (zoom >= 16) {
+          radius = 1000; // Close up: Small radius, high detail
+          limit = 100;
+        } else if (zoom >= 14) {
+          radius = 5000; // Medium: Standard
+          limit = 50;
         } else {
-          // Nearby Search (Local only)
-          url = `/api/business/nearby?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=5000`;
+          radius = 20000; // Far out: Large radius, only top results
+          limit = 20;
         }
-
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch');
-
-        const data = await response.json();
-        setBusinesses(data.businesses || []);
-      } catch (error) {
-        console.error('Error fetching businesses:', error);
-      } finally {
-        setLoading(false);
+        // Nearby Search (Local only)
+        url = `/api/business/nearby?lat=${lat}&lng=${lng}&radius=${radius}&limit=${limit}`;
       }
-    };
 
-    const debounce = setTimeout(fetchBusinesses, 500);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch');
+
+      const data = await response.json();
+      setBusinesses(data.businesses || []);
+    } catch (error) {
+      console.error('Error fetching businesses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch and search listener
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      fetchBusinesses(userLocation.lat, userLocation.lng, mapZoom);
+    }, 500);
     return () => clearTimeout(debounce);
   }, [searchQuery, userLocation]);
 
@@ -107,8 +126,10 @@ function App() {
     setIsProfileOpen(false);
   };
 
-  const handleMapMove = (center) => {
-    setMapCenter(center);
+  const handleMapMove = ({ lat, lng, zoom }) => {
+    setMapCenter({ lat, lng });
+    setMapZoom(zoom);
+    fetchBusinesses(lat, lng, zoom);
   };
 
   return (

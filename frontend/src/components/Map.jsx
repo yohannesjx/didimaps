@@ -199,10 +199,11 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         window.addEventListener('resize', handleResize);
 
         // Track map movement
-        map.current.on('move', () => {
+        map.current.on('moveend', () => {
             if (onMapMove) {
                 const center = map.current.getCenter();
-                onMapMove({ lat: center.lat, lng: center.lng });
+                const zoom = map.current.getZoom();
+                onMapMove({ lat: center.lat, lng: center.lng, zoom: zoom });
             }
         });
 
@@ -229,15 +230,22 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
     useEffect(() => {
         if (!map.current || !userLocation) return;
 
-        if (!userMarkerRef.current) {
-            const el = document.createElement('div');
-            el.className = 'user-marker';
-            userMarkerRef.current = new maplibregl.Marker(el)
-                .setLngLat([userLocation.lng, userLocation.lat])
-                .addTo(map.current);
-        } else {
-            userMarkerRef.current.setLngLat([userLocation.lng, userLocation.lat]);
+        // Cleanup existing marker
+        if (userMarkerRef.current) {
+            userMarkerRef.current.remove();
         }
+
+        // Force cleanup of any ghost markers
+        const ghosts = document.getElementsByClassName('user-marker');
+        while (ghosts.length > 0) {
+            ghosts[0].remove();
+        }
+
+        const el = document.createElement('div');
+        el.className = 'user-marker';
+        userMarkerRef.current = new maplibregl.Marker(el)
+            .setLngLat([userLocation.lng, userLocation.lat])
+            .addTo(map.current);
     }, [userLocation]);
 
     // Update padding when sidebar visibility changes
