@@ -76,6 +76,10 @@ func main() {
 				tr.Get("/json", handlers.GetTileJSON(cfg))
 				tr.Get("/list", handlers.ListTilesets(cfg))
 			})
+
+			// Public categories and nearby business search for anonymous map usage
+			public.Get("/categories", handlers.GetCategories(database))
+			public.Get("/business/nearby", handlers.GetNearbyBusinesses(database))
 		})
 
 		// Protected endpoints - apply JWT middleware within this group
@@ -94,13 +98,9 @@ func main() {
 			priv.Get("/search", handlers.Search(cfg))
 			priv.Get("/reverse", handlers.ReverseGeocode(cfg))
 
-			// Categories
-			priv.Get("/categories", handlers.GetCategories(database))
-
-			// Business endpoints
+			// Business endpoints (authenticated operations)
 			priv.Route("/business", func(br chi.Router) {
 				br.Post("/", handlers.CreateBusiness(database))
-				br.Get("/nearby", handlers.GetNearbyBusinesses(database))
 				br.Get("/search", handlers.SearchBusinesses(database))
 				br.Get("/saved", handlers.GetSavedBusinesses(database))
 				br.Get("/{id}", handlers.GetBusiness(database))
