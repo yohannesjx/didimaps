@@ -294,36 +294,60 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         }
     }, [directionsDestination, userLocation]);
 
-    const toggleStyle = () => {
-        const newMode = styleMode === 'dark' ? 'light' : 'dark';
-        setStyleMode(newMode);
-        if (map.current) {
-            map.current.setStyle(getStyle(newMode));
+    const hasCenteredRef = useRef(false);
+
+    // Auto-center on user location when first detected
+    useEffect(() => {
+        if (userLocation && map.current && !hasCenteredRef.current) {
+            map.current.flyTo({
+                center: [userLocation.lng, userLocation.lat],
+                zoom: 15,
+                pitch: 45,
+                duration: 2000
+            });
+            hasCenteredRef.current = true;
+        }
+    }, [userLocation]);
+
+    const handleLocateMe = () => {
+        if (userLocation && map.current) {
+            map.current.flyTo({
+                center: [userLocation.lng, userLocation.lat],
+                zoom: 17,
+                pitch: 50,
+                duration: 2000
+            });
         }
     };
 
     return (
         <div className="map-wrapper" style={{ position: 'relative', width: '100%', height: '100vh' }}>
             <div ref={mapContainer} className="map-container" />
+
+            {/* Locate Me Button */}
             <button
-                className="layer-switch-btn"
-                onClick={toggleStyle}
+                className="map-control-btn"
+                onClick={handleLocateMe}
                 style={{
                     position: 'absolute',
-                    top: '20px',
-                    right: '60px',
+                    bottom: '110px', // Positioned above zoom controls
+                    right: '10px',
                     zIndex: 10,
                     background: 'white',
                     border: 'none',
                     borderRadius: '4px',
-                    padding: '8px',
+                    width: '29px',
+                    height: '29px',
                     boxShadow: '0 0 0 2px rgba(0,0,0,0.1)',
                     cursor: 'pointer',
-                    fontSize: '20px'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '16px'
                 }}
-                title="Switch Map Style"
+                title="Locate Me"
             >
-                {styleMode === 'dark' ? '☀️' : '🌙'}
+                🎯
             </button>
         </div>
     );
