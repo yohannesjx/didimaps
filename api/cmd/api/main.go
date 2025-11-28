@@ -83,6 +83,7 @@ func main() {
 			public.Get("/categories", handlers.GetCategories(database))
 			public.Get("/business/nearby", handlers.GetNearbyBusinesses(database))
 			public.Get("/business/search", handlers.SearchBusinesses(database, cfg))
+			public.Get("/route", handlers.GetRoute(cfg))
 		})
 
 		// Protected endpoints - apply JWT middleware within this group
@@ -95,7 +96,6 @@ func main() {
 			priv.Get("/activity", handlers.GetActivity(database))
 
 			// Routing endpoints
-			priv.Get("/route", handlers.GetRoute(cfg))
 			priv.Post("/match", handlers.MatchGPS(cfg))
 
 			// Geocoding endpoints
