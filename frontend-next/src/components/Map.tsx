@@ -117,7 +117,14 @@ export default function Map() {
             console.log('Canvas style:', canvas?.style.cssText);
             console.log('Canvas dimensions:', canvas?.width, canvas?.height);
           }
-        }, 1000);
+        }, 100);
+
+        // Force resize again after a longer delay
+        setTimeout(() => {
+          if (map.current) {
+            map.current.resize();
+          }
+        }, 500);
 
       } catch (err: any) {
         console.error('Error initializing map:', err);
@@ -127,6 +134,23 @@ export default function Map() {
     };
 
     initializeMap();
+
+    // Add window resize listener
+    const handleResize = () => {
+      if (map.current) {
+        map.current.resize();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
 
   }, [lng, lat, zoom]);
 
