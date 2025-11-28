@@ -23,7 +23,7 @@ services:
     image: mediagis/nominatim:4.4
     container_name: nominatim
     environment:
-      - PBF_URL=https://download.geofabrik.de/europe/monaco-latest.osm.pbf
+      - PBF_URL=https://download.geofabrik.de/africa/ethiopia/addis-ababa-latest.osm.pbf
       - IMPORT_WIKIPEDIA=false
       - NOMINATIM_PASSWORD=nominatim
     volumes:
