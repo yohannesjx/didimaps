@@ -16,40 +16,56 @@ export default function Map() {
     if (map.current) return; // initialize map only once
     if (!mapContainer.current) return;
 
-    try {
-      map.current = new maplibregl.Map({
-        container: mapContainer.current,
-        style: '/map-assets/style.json',
-        center: [lng, lat],
-        zoom: zoom,
-        attributionControl: false,
-      });
+    const initializeMap = async () => {
+      try {
+        // Fetch the style JSON manually
+        const response = await fetch('/map-assets/style.json');
+        const style = await response.json();
 
-      map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-      
-      map.current.addControl(new maplibregl.GeolocateControl({
+        // Resolve absolute URL for sprites and glyphs
+        const origin = window.location.origin;
+        if (style.sprite && style.sprite.startsWith('/')) {
+          style.sprite = `${origin}${style.sprite}`;
+        }
+        if (style.glyphs && style.glyphs.startsWith('/')) {
+          style.glyphs = `${origin}${style.glyphs}`;
+        }
+
+        map.current = new maplibregl.Map({
+          container: mapContainer.current!,
+          style: style, // Pass the modified style object
+          center: [lng, lat],
+          zoom: zoom,
+          attributionControl: false,
+        });
+
+        map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+        map.current.addControl(new maplibregl.GeolocateControl({
           positionOptions: {
-              enableHighAccuracy: true
+            enableHighAccuracy: true
           },
           trackUserLocation: true
-      }), 'top-right');
+        }), 'top-right');
 
-      map.current.addControl(new maplibregl.AttributionControl({
+        map.current.addControl(new maplibregl.AttributionControl({
           customAttribution: '<a href="https://openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
-      }), 'bottom-right');
+        }), 'bottom-right');
 
-      // Debugging: Log when style loads or errors
-      map.current.on('style.load', () => {
-        console.log('Map style loaded successfully');
-      });
+        map.current.on('style.load', () => {
+          console.log('Map style loaded successfully');
+        });
 
-      map.current.on('error', (e) => {
-        console.error('Map error:', e);
-      });
+        map.current.on('error', (e) => {
+          console.error('Map error:', e);
+        });
 
-    } catch (error) {
-      console.error('Error initializing map:', error);
-    }
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    };
+
+    initializeMap();
 
   }, [lng, lat, zoom]);
 
