@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useMapStore } from '@/lib/store';
+import { lightStyle, darkStyle } from '@/lib/map-styles';
 import { api } from '@/lib/api';
 import polyline from '@mapbox/polyline';
 
@@ -37,8 +38,7 @@ export default function Map() {
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      // Use server-provided TileJSON style to ensure tiles render correctly
-      style: 'https://maps.didi.et/api/tiles/json?tileset=addis',
+      style: theme === 'dark' ? darkStyle : lightStyle,
       center: center,
       zoom: zoom,
       attributionControl: false,
@@ -104,8 +104,8 @@ export default function Map() {
 
   // Update style when theme changes
   useEffect(() => {
-    // For now we use a single style URL; theme only affects overlays/markers.
     if (!map.current) return;
+    map.current.setStyle(theme === 'dark' ? darkStyle : lightStyle);
   }, [theme]);
 
   // Update markers when businesses change

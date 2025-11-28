@@ -3,12 +3,13 @@ import type { StyleSpecification } from 'maplibre-gl';
 // Always use the Go API tile proxy (public, no auth) for vector tiles.
 // This avoids any legacy /tiles/services/osm paths leaking into the frontend.
 const TILE_URL = 'https://maps.didi.et/api/tiles/{z}/{x}/{y}.pbf';
-const GLYPHS_URL = 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf';
+// Glyphs disabled for now to avoid 404s; labels won't render but geometry will
+// const GLYPHS_URL = 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf';
 
 export const lightStyle: StyleSpecification = {
   version: 8,
   name: 'Didi Maps Light',
-  glyphs: GLYPHS_URL,
+  // glyphs: GLYPHS_URL, // disabled to avoid 404s
   sources: {
     'osm-tiles': {
       type: 'vector',
@@ -136,48 +137,14 @@ export const lightStyle: StyleSpecification = {
         'line-width': ['interpolate', ['linear'], ['zoom'], 12, 0.5, 18, 6],
       },
     },
-    // Labels
-    {
-      id: 'road-labels',
-      type: 'symbol',
-      source: 'osm-tiles',
-      'source-layer': 'transportation_name',
-      minzoom: 13,
-      layout: {
-        'text-field': ['get', 'name'],
-        'text-size': 11,
-        'symbol-placement': 'line',
-        'text-font': ['Open Sans Regular'],
-      },
-      paint: {
-        'text-color': '#666666',
-        'text-halo-color': '#ffffff',
-        'text-halo-width': 1.5,
-      },
-    },
-    {
-      id: 'place-labels',
-      type: 'symbol',
-      source: 'osm-tiles',
-      'source-layer': 'place',
-      layout: {
-        'text-field': ['get', 'name'],
-        'text-size': ['interpolate', ['linear'], ['zoom'], 10, 12, 14, 16],
-        'text-font': ['Open Sans Bold'],
-      },
-      paint: {
-        'text-color': '#333333',
-        'text-halo-color': '#ffffff',
-        'text-halo-width': 2,
-      },
-    },
+    // Labels disabled to avoid glyph 404s
   ],
 };
 
 export const darkStyle: StyleSpecification = {
   version: 8,
   name: 'Didi Maps Dark',
-  glyphs: GLYPHS_URL,
+  // glyphs: GLYPHS_URL, // disabled to avoid 404s
   sources: {
     'osm-tiles': {
       type: 'vector',
@@ -293,40 +260,6 @@ export const darkStyle: StyleSpecification = {
         'line-width': ['interpolate', ['linear'], ['zoom'], 12, 0.5, 18, 6],
       },
     },
-    // Labels
-    {
-      id: 'road-labels',
-      type: 'symbol',
-      source: 'osm-tiles',
-      'source-layer': 'transportation_name',
-      minzoom: 13,
-      layout: {
-        'text-field': ['get', 'name'],
-        'text-size': 11,
-        'symbol-placement': 'line',
-        'text-font': ['Open Sans Regular'],
-      },
-      paint: {
-        'text-color': '#a0a0b0',
-        'text-halo-color': '#1a1a2e',
-        'text-halo-width': 1.5,
-      },
-    },
-    {
-      id: 'place-labels',
-      type: 'symbol',
-      source: 'osm-tiles',
-      'source-layer': 'place',
-      layout: {
-        'text-field': ['get', 'name'],
-        'text-size': ['interpolate', ['linear'], ['zoom'], 10, 12, 14, 16],
-        'text-font': ['Open Sans Bold'],
-      },
-      paint: {
-        'text-color': '#e0e0f0',
-        'text-halo-color': '#1a1a2e',
-        'text-halo-width': 2,
-      },
-    },
+    // Labels disabled to avoid glyph 404s
   ],
 };
