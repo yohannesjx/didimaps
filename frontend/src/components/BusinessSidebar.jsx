@@ -6,39 +6,42 @@ export default function BusinessList({ onSelectBusiness, searchQuery }) {
     const [businesses, setBusinesses] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // Mock data for now - will connect to API later
-    const mockBusinesses = [
-        {
-            id: 1,
-            name: 'Nogbon',
-            rating: 5.0,
-            reviewCount: 1006,
-            status: 'Closed until tomorrow',
-            category: 'Bakery, fast food',
-            address: 'Moscow, 5th Magistralnaya Street, 12, этаж 1',
-            hours: '700-1500 ₽',
-            image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400',
-        },
-        {
-            id: 2,
-            name: 'Domino pizza',
-            rating: 4.1,
-            reviewCount: 806,
-            status: 'Open until 11:00 PM',
-            category: 'Pizzeria, fast food',
-            address: 'Moscow, Schepkina Street, 28c1',
-            hours: '600-600 ₽',
-            image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400',
-        },
-    ];
-
     useEffect(() => {
-        // Simulate API call
-        setLoading(true);
-        setTimeout(() => {
-            setBusinesses(mockBusinesses);
-            setLoading(false);
-        }, 500);
+        const fetchBusinesses = async () => {
+            setLoading(true);
+            try {
+                // Fetch from API - using nearby search for Addis Ababa center
+                const lat = 8.9806;
+                const lng = 38.7578;
+                const radius = 5000; // 5km radius
+
+                const url = `/api/businesses/nearby?lat=${lat}&lng=${lng}&radius=${radius}${searchQuery ? `&query=${encodeURIComponent(searchQuery)}` : ''}`;
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch businesses');
+
+                const data = await response.json();
+                setBusinesses(data.businesses || []);
+            } catch (error) {
+                console.error('Error fetching businesses:', error);
+                // Fallback to mock data if API fails
+                setBusinesses([
+                    {
+                        id: '1',
+                        name: 'Sample Restaurant',
+                        rating: 4.5,
+                        category: 'Restaurant',
+                        address: 'Addis Ababa, Ethiopia',
+                        status: 'Open',
+                        hours: '500-1000 Birr',
+                    },
+                ]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBusinesses();
     }, [searchQuery]);
 
     return (
