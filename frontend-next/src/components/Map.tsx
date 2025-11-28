@@ -3,6 +3,19 @@ import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
+// WebGL support check
+function isWebGLAvailable() {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 export default function Map() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState('Initializing...');
@@ -13,9 +26,8 @@ export default function Map() {
       return;
     }
 
-    // WebGL support check
-    if (!maplibregl.supported()) {
-      setStatus('Error: WebGL not supported in this browser');
+    if (!isWebGLAvailable()) {
+      setStatus('Error: WebGL not supported');
       return;
     }
 
@@ -28,12 +40,11 @@ export default function Map() {
     });
 
     map.on('load', () => setStatus('Map loaded successfully'));
-    map.on('error', (e) => setStatus(`Error: ${e.error?.message || e.message || 'Unknown map error'}`));
+    map.on('error', (e) => setStatus(`Error: ${e.error?.message || e.message || 'Unknown error'}`));
 
-    // Debug tile loading
     map.on('sourcedata', (e) => {
       if (e.sourceId === 'osm') {
-        setStatus(`Loading tiles: ${e.sourceId} (${e.tile?.tileID?.toString() || 'unknown tile'})`);
+        setStatus(`Loading tiles: ${e.sourceId}`);
       }
     });
 
