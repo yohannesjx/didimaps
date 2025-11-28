@@ -1,0 +1,49 @@
+maps.didi.et {
+    # Frontend - serve static files
+    handle / {
+        root * /srv/frontend
+        file_server
+        try_files {path} /index.html
+    }
+
+    # API Gateway
+    handle /api/* {
+        reverse_proxy api:8000
+    }
+
+    handle /auth/* {
+        reverse_proxy api:8000
+    }
+
+    handle /health {
+        reverse_proxy api:8000
+    }
+
+    # Tile server
+    handle /tiles/* {
+        uri strip_prefix /tiles
+        reverse_proxy tileserver:8000
+    }
+
+    # Enable compression
+    encode gzip
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+
+    # Logging
+    log {
+        output stdout
+        format console
+    }
+}
+
+# Redirect www to non-www
+www.maps.didi.et {
+    redir https://maps.didi.et{uri} permanent
+}

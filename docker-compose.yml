@@ -1,11 +1,27 @@
 services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./frontend:/srv/frontend
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+      - tileserver
+    restart: unless-stopped
+
   tileserver:
     image: ghcr.io/consbio/mbtileserver:latest
     container_name: tileserver
     volumes:
       - ./data/tiles:/tilesets
-    ports:
-      - "8080:8000"
+    expose:
+      - "8000"
     command: ["-d", "/tilesets", "-p", "8000"]
     restart: unless-stopped
 
@@ -14,8 +30,8 @@ services:
     container_name: osrm
     volumes:
       - ./data/osrm:/data
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     command: ["osrm-routed", "--algorithm", "mld", "/data/monaco.osrm"]
     restart: unless-stopped
 
@@ -28,8 +44,8 @@ services:
       - NOMINATIM_PASSWORD=nominatim
     volumes:
       - nominatim-data:/var/lib/postgresql/14/main
-    ports:
-      - "8081:8080"
+    expose:
+      - "8080"
     shm_size: 1g
     restart: unless-stopped
 
@@ -40,10 +56,10 @@ services:
       - OSRM_HOST=http://osrm:5000
       - GEOCODER_HOST=http://nominatim:8080
       - TILE_HOST=http://tileserver:8000
-      - JWT_SECRET=change-this-in-production
+      - JWT_SECRET=${JWT_SECRET:-CHANGE_ME_IN_PRODUCTION}
       - RATE_LIMIT=100
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     depends_on:
       - osrm
       - nominatim
@@ -52,3 +68,5 @@ services:
 
 volumes:
   nominatim-data:
+  caddy-data:
+  caddy-config:
