@@ -12,14 +12,21 @@ export default function Map() {
   const [lat] = useState(8.9806);
   const [zoom] = useState(12);
 
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (map.current) return; // initialize map only once
     if (!mapContainer.current) return;
 
     const initializeMap = async () => {
       try {
+        setLoading(true);
         // Fetch the style JSON manually
         const response = await fetch('/map-assets/style.json');
+        if (!response.ok) {
+          throw new Error(`Failed to load style: ${response.status} ${response.statusText}`);
+        }
         const style = await response.json();
 
         // Resolve absolute URL for sprites and glyphs
@@ -62,14 +69,18 @@ export default function Map() {
 
         map.current.on('style.load', () => {
           console.log('Map style loaded successfully');
+          setLoading(false);
         });
 
         map.current.on('error', (e) => {
           console.error('Map error:', e);
+          setError(`Map error: ${e.error?.message || 'Unknown error'}`);
         });
 
-      } catch (error) {
-        console.error('Error initializing map:', error);
+      } catch (err: any) {
+        console.error('Error initializing map:', err);
+        setError(err.message || 'Failed to initialize map');
+        setLoading(false);
       }
     };
 
@@ -79,6 +90,19 @@ export default function Map() {
 
   return (
     <div className="relative w-full h-full min-h-screen bg-gray-100">
+      {error && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-red-100 bg-opacity-90">
+          <div className="p-4 bg-white rounded shadow-lg">
+            <h3 className="text-red-600 font-bold">Error Loading Map</h3>
+            <p className="text-gray-700">{error}</p>
+          </div>
+        </div>
+      )}
+      {loading && !error && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="text-white">Loading Map...</div>
+        </div>
+      )}
       <div ref={mapContainer} className="absolute inset-0" />
     </div>
   );
