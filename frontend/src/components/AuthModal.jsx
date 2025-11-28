@@ -14,7 +14,7 @@ export default function AuthModal({ onClose, onSuccess }) {
         setError('');
 
         try {
-            const response = await fetch('/api/auth/send-otp', {
+            const response = await fetch('/api/auth/send-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone }),
@@ -36,7 +36,7 @@ export default function AuthModal({ onClose, onSuccess }) {
         setError('');
 
         try {
-            const response = await fetch('/api/auth/verify-otp', {
+            const response = await fetch('/api/auth/verify-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone, code: otp }),
