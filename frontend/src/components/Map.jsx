@@ -8,6 +8,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markers = useRef([]);
+    const userMarkerRef = useRef(null);
 
     useEffect(() => {
         if (map.current) return; // Initialize map only once
@@ -133,6 +134,21 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         };
     }, []);
 
+    // Update User Marker
+    useEffect(() => {
+        if (!map.current || !userLocation) return;
+
+        if (!userMarkerRef.current) {
+            const el = document.createElement('div');
+            el.className = 'user-marker';
+            userMarkerRef.current = new maplibregl.Marker(el)
+                .setLngLat([userLocation.lng, userLocation.lat])
+                .addTo(map.current);
+        } else {
+            userMarkerRef.current.setLngLat([userLocation.lng, userLocation.lat]);
+        }
+    }, [userLocation]);
+
     // Update padding when sidebar visibility changes
     useEffect(() => {
         if (map.current) {
@@ -221,6 +237,12 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
                     if (data.routes && data.routes.length > 0) {
                         const geometry = data.routes[0].geometry;
                         const coordinates = decodePolyline(geometry);
+
+                        // Fix visual gap by connecting to exact start/end points
+                        if (coordinates.length > 0) {
+                            coordinates.unshift([userLocation.lng, userLocation.lat]);
+                            coordinates.push([directionsDestination.lng, directionsDestination.lat]);
+                        }
 
                         const routeGeoJSON = {
                             type: 'Feature',
