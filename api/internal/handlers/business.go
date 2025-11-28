@@ -3,28 +3,34 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
+
+	"maps/api/internal/config"
 
 	"github.com/go-chi/chi/v5"
 )
 
 // CreateBusinessRequest is the request body for creating a business
 type CreateBusinessRequest struct {
-	Name          string   `json:"name"`
-	NameAm        *string  `json:"name_am,omitempty"`
-	Description   *string  `json:"description,omitempty"`
-	DescriptionAm *string  `json:"description_am,omitempty"`
-	CategoryID    *string  `json:"category_id,omitempty"`
-	Phone         *string  `json:"phone,omitempty"`
-	Email         *string  `json:"email,omitempty"`
-	Website       *string  `json:"website,omitempty"`
-	Lat           float64  `json:"lat"`
-	Lng           float64  `json:"lng"`
-	Address       *string  `json:"address,omitempty"`
-	AddressAm     *string  `json:"address_am,omitempty"`
+	Name          string  `json:"name"`
+	NameAm        *string `json:"name_am,omitempty"`
+	Description   *string `json:"description,omitempty"`
+	DescriptionAm *string `json:"description_am,omitempty"`
+	CategoryID    *string `json:"category_id,omitempty"`
+	Phone         *string `json:"phone,omitempty"`
+	Email         *string `json:"email,omitempty"`
+	Website       *string `json:"website,omitempty"`
+	Lat           float64 `json:"lat"`
+	Lng           float64 `json:"lng"`
+	Address       *string `json:"address,omitempty"`
+	AddressAm     *string `json:"address_am,omitempty"`
 }
 
 // UpdateBusinessRequest is the request body for updating a business
@@ -53,30 +59,30 @@ type BusinessHourRequest struct {
 
 // BusinessResponse is the response for a business
 type BusinessResponseFull struct {
-	ID            string           `json:"id"`
-	OwnerID       *string          `json:"owner_id,omitempty"`
-	Name          string           `json:"name"`
-	NameAm        *string          `json:"name_am,omitempty"`
-	Description   *string          `json:"description,omitempty"`
-	DescriptionAm *string          `json:"description_am,omitempty"`
-	Category      *CategoryResp    `json:"category,omitempty"`
-	Phone         *string          `json:"phone,omitempty"`
-	Email         *string          `json:"email,omitempty"`
-	Website       *string          `json:"website,omitempty"`
-	Lat           float64          `json:"lat"`
-	Lng           float64          `json:"lng"`
-	Address       *string          `json:"address,omitempty"`
-	AddressAm     *string          `json:"address_am,omitempty"`
-	City          string           `json:"city"`
-	Status        string           `json:"status"`
-	AvgRating     float64          `json:"avg_rating"`
-	ReviewCount   int              `json:"review_count"`
-	ViewCount     int              `json:"view_count"`
-	Distance      *float64         `json:"distance_m,omitempty"`
+	ID            string             `json:"id"`
+	OwnerID       *string            `json:"owner_id,omitempty"`
+	Name          string             `json:"name"`
+	NameAm        *string            `json:"name_am,omitempty"`
+	Description   *string            `json:"description,omitempty"`
+	DescriptionAm *string            `json:"description_am,omitempty"`
+	Category      *CategoryResp      `json:"category,omitempty"`
+	Phone         *string            `json:"phone,omitempty"`
+	Email         *string            `json:"email,omitempty"`
+	Website       *string            `json:"website,omitempty"`
+	Lat           float64            `json:"lat"`
+	Lng           float64            `json:"lng"`
+	Address       *string            `json:"address,omitempty"`
+	AddressAm     *string            `json:"address_am,omitempty"`
+	City          string             `json:"city"`
+	Status        string             `json:"status"`
+	AvgRating     float64            `json:"avg_rating"`
+	ReviewCount   int                `json:"review_count"`
+	ViewCount     int                `json:"view_count"`
+	Distance      *float64           `json:"distance_m,omitempty"`
 	Hours         []BusinessHourResp `json:"hours,omitempty"`
-	Media         []MediaResp      `json:"media,omitempty"`
-	IsSaved       bool             `json:"is_saved"`
-	CreatedAt     string           `json:"created_at"`
+	Media         []MediaResp        `json:"media,omitempty"`
+	IsSaved       bool               `json:"is_saved"`
+	CreatedAt     string             `json:"created_at"`
 }
 
 type CategoryResp struct {
@@ -155,6 +161,9 @@ func CreateBusiness(db *sql.DB) http.HandlerFunc {
 
 		// Update user role to business_owner if not already
 		db.Exec("UPDATE users SET role = 'business_owner' WHERE id = $1 AND role = 'user'", userID)
+
+		// Log activity
+		LogActivity(db, userID, "create_business", map[string]string{"business_id": businessID, "name": req.Name}, r.RemoteAddr)
 
 		jsonResponse(w, map[string]string{
 			"id":      businessID,
@@ -555,8 +564,8 @@ func GetNearbyBusinesses(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-// SearchBusinesses searches businesses by name/description
-func SearchBusinesses(db *sql.DB) http.HandlerFunc {
+// SearchBusinesses searches businesses by name/description (Hybrid: Local + Nominatim)
+func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
 		if q == "" {
@@ -571,6 +580,12 @@ func SearchBusinesses(db *sql.DB) http.HandlerFunc {
 		}
 		if limit > 100 {
 			limit = 100
+		}
+
+		// Log search activity (if user is logged in)
+		userID := getUserIDFromContext(r)
+		if userID != "" {
+			LogActivity(db, userID, "search", map[string]string{"query": q}, r.RemoteAddr)
 		}
 
 		rows, err := db.Query(`
@@ -626,6 +641,7 @@ func SearchBusinesses(db *sql.DB) http.HandlerFunc {
 				"city":         city,
 				"avg_rating":   avgRating,
 				"review_count": reviewCount,
+				"source":       "local",
 			}
 			if nameAm.Valid {
 				biz["name_am"] = nameAm.String
@@ -645,6 +661,63 @@ func SearchBusinesses(db *sql.DB) http.HandlerFunc {
 
 		if businesses == nil {
 			businesses = []map[string]interface{}{}
+		}
+
+		// If local results are few, fetch from Nominatim
+		if len(businesses) < 5 {
+			nominatimURL := fmt.Sprintf("%s/search?q=%s&format=json&limit=5&addressdetails=1",
+				cfg.GeocoderHost, url.QueryEscape(q))
+
+			// Bias to Addis Ababa if no location provided
+			nominatimURL += "&viewbox=38.65,9.10,38.90,8.80&bounded=0"
+
+			resp, err := http.Get(nominatimURL)
+			if err == nil {
+				defer resp.Body.Close()
+				body, _ := io.ReadAll(resp.Body)
+
+				var nominatimResults []struct {
+					PlaceID     int    `json:"place_id"`
+					Lat         string `json:"lat"`
+					Lon         string `json:"lon"`
+					DisplayName string `json:"display_name"`
+					Type        string `json:"type"`
+					Name        string `json:"name"`
+				}
+
+				if json.Unmarshal(body, &nominatimResults) == nil {
+					for _, nr := range nominatimResults {
+						lat, _ := strconv.ParseFloat(nr.Lat, 64)
+						lng, _ := strconv.ParseFloat(nr.Lon, 64)
+
+						// Use Name if available, else first part of DisplayName
+						name := nr.Name
+						if name == "" {
+							parts := strings.Split(nr.DisplayName, ",")
+							if len(parts) > 0 {
+								name = parts[0]
+							}
+						}
+
+						biz := map[string]interface{}{
+							"id":           fmt.Sprintf("nom_%d", nr.PlaceID),
+							"name":         name,
+							"lat":          lat,
+							"lng":          lng,
+							"city":         "External",
+							"avg_rating":   0,
+							"review_count": 0,
+							"address":      nr.DisplayName,
+							"source":       "nominatim",
+							"category": map[string]interface{}{
+								"name": nr.Type,
+								"icon": "map-pin",
+							},
+						}
+						businesses = append(businesses, biz)
+					}
+				}
+			}
 		}
 
 		jsonResponse(w, map[string]interface{}{

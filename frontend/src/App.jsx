@@ -1,17 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Map from './components/Map';
-import SearchBox from './components/SearchBox';
 import BusinessSidebar from './components/BusinessSidebar';
-import DirectionsSidebar from './components/DirectionsSidebar';
-import './App.css?v=2'; // Force cache bust
+import SearchBox from './components/SearchBox';
+import LoginModal from './components/LoginModal';
+import ProfileSidebar from './components/ProfileSidebar';
+import { useAuth } from './contexts/AuthContext';
+import './App.css?v=2';
 
 function App() {
+  const { isAuthenticated } = useAuth();
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('search'); // search, directions
   const [directionsDestination, setDirectionsDestination] = useState(null);
   const [userLocation, setUserLocation] = useState({ lat: 9.0000, lng: 38.7500 }); // Default center
   const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Hidden by default
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -116,56 +122,62 @@ function App() {
     }
   }, [selectedBusiness]);
 
-  const filteredBusinesses = businesses.filter(b =>
-    b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
-    <div className="app">
-      <Map
-        selectedBusiness={selectedBusiness}
-        businesses={businesses}
-        onMarkerClick={(business) => {
-          setSelectedBusiness(business);
-          setIsSidebarVisible(true);
-        }}
-        directionsDestination={viewMode === 'directions' ? directionsDestination : null}
-        userLocation={userLocation}
-        isSidebarVisible={isSidebarVisible}
-      />
-
-      {viewMode === 'search' ? (
-        <>
+    <div className="app-container">
+      <div className="sidebar-container">
+        <div className="search-container">
           <SearchBox
             query={searchQuery}
             onSearch={(q) => {
               setSearchQuery(q);
               if (q) setIsSidebarVisible(true);
             }}
-            onProfileClick={() => alert('Profile / Add Business clicked')}
+            onProfileClick={() => {
+              if (isAuthenticated) {
+                setIsProfileOpen(true);
+                setIsSidebarVisible(false);
+              } else {
+                setIsLoginOpen(true);
+              }
+            }}
           />
 
           <BusinessSidebar
-            businesses={filteredBusinesses}
+            businesses={businesses}
             selectedBusiness={selectedBusiness}
-            onSelectBusiness={setSelectedBusiness}
-            isVisible={isSidebarVisible}
-            onClose={() => {
-              setIsSidebarVisible(false);
-              setSelectedBusiness(null);
-              setSearchQuery('');
+            onSelectBusiness={(business) => {
+              setSelectedBusiness(business);
+              setIsSidebarVisible(true);
             }}
+            isVisible={isSidebarVisible && !isProfileOpen}
+            onClose={() => setIsSidebarVisible(false)}
           />
-        </>
-      ) : (
-        <DirectionsSidebar
-          origin={userLocation}
-          destination={directionsDestination}
-          onBack={() => setViewMode('search')}
-          onStartNavigation={() => alert('Navigation started!')}
-        />
-      )}
+
+          <ProfileSidebar
+            isOpen={isProfileOpen}
+            onClose={() => setIsProfileOpen(false)}
+            onAddBusiness={() => alert('Add Business Flow')}
+          />
+        </div>
+      </div>
+
+      <Map
+        selectedBusiness={selectedBusiness}
+        businesses={businesses}
+        onMarkerClick={(business) => {
+          setSelectedBusiness(business);
+          setIsSidebarVisible(true);
+          setIsProfileOpen(false);
+        }}
+        directionsDestination={directionsDestination}
+        userLocation={userLocation}
+        isSidebarVisible={isSidebarVisible || isProfileOpen}
+      />
+
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+      />
     </div>
   );
 }

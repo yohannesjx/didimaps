@@ -89,6 +89,7 @@ func main() {
 			// User profile
 			priv.Get("/me", handlers.GetMe(database))
 			priv.Put("/me", handlers.UpdateMe(database))
+			priv.Get("/activity", handlers.GetActivity(database))
 
 			// Routing endpoints
 			priv.Get("/route", handlers.GetRoute(cfg))
@@ -101,7 +102,7 @@ func main() {
 			// Business endpoints (authenticated operations)
 			priv.Route("/business", func(br chi.Router) {
 				br.Post("/", handlers.CreateBusiness(database))
-				br.Get("/search", handlers.SearchBusinesses(database))
+				br.Get("/search", handlers.SearchBusinesses(database, cfg))
 				br.Get("/saved", handlers.GetSavedBusinesses(database))
 				br.Get("/{id}", handlers.GetBusiness(database))
 				br.Put("/{id}", handlers.UpdateBusiness(database))
