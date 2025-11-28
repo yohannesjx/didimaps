@@ -101,23 +101,22 @@ export default function Map() {
             const el = document.createElement('div');
             el.className = 'business-marker';
             el.innerHTML = '📍';
-            el.style.fontSize = '24px';
+            el.style.fontSize = '28px';
             el.style.cursor = 'pointer';
 
-            // Add marker to map
-            const marker = new maplibregl.Marker(el)
-                .setLngLat([business.lng, business.lat])
-                .addTo(map.current);
-
-            // Add popup
+            // Create popup
             const popup = new maplibregl.Popup({ offset: 25 })
-                .setHTML(`<strong>${business.name}</strong>`);
+                .setHTML(`
+                    <div style="padding: 8px;">
+                        <strong style="font-size: 14px;">${business.name}</strong>
+                    </div>
+                `);
 
-            el.addEventListener('click', () => {
-                popup.addTo(map.current);
-                marker.setPopup(popup);
-                marker.togglePopup();
-            });
+            // Add marker with popup
+            new maplibregl.Marker(el)
+                .setLngLat([business.lng, business.lat])
+                .setPopup(popup)
+                .addTo(map.current);
         });
 
         // Cleanup
