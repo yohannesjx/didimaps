@@ -74,7 +74,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             },
             center: [38.7578, 8.9806], // Addis Ababa
             zoom: 12,
-            padding: { left: 360 }, // Offset for sidebar
+            padding: { left: window.innerWidth > 768 ? 360 : 0 }, // Responsive padding
         });
 
         // Add navigation controls
@@ -91,8 +91,20 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             'top-right'
         );
 
+        // Handle window resize to adjust padding
+        const handleResize = () => {
+            if (map.current) {
+                map.current.easeTo({
+                    padding: { left: window.innerWidth > 768 ? 360 : 0 },
+                    duration: 300
+                });
+            }
+        };
+        window.addEventListener('resize', handleResize);
+
         // Cleanup
         return () => {
+            window.removeEventListener('resize', handleResize);
             if (map.current) {
                 map.current.remove();
                 map.current = null;

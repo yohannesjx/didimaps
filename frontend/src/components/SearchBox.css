@@ -3,11 +3,12 @@
     position: absolute;
     top: 16px;
     left: 380px;
-    /* Offset by sidebar width + padding */
+    /* Desktop: Sidebar width + padding */
     z-index: 1000;
     display: flex;
     gap: 12px;
     align-items: center;
+    transition: all 0.3s ease;
 }
 
 .search-input-container {
@@ -19,7 +20,7 @@
     padding: 0 16px;
     height: 48px;
     width: 360px;
-    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, width 0.3s ease;
 }
 
 .search-input-container:hover {
@@ -39,6 +40,7 @@
     font-size: 16px;
     color: #000;
     height: 100%;
+    background: transparent;
 }
 
 .search-input-main::placeholder {
@@ -63,11 +65,12 @@
     position: absolute;
     top: 16px;
     left: 760px;
-    /* Offset by sidebar + search box */
+    /* Desktop: Sidebar + Search + Padding */
     z-index: 1000;
     display: flex;
     gap: 8px;
     align-items: center;
+    transition: all 0.3s ease;
 }
 
 .category-pill {
@@ -100,4 +103,35 @@
 
 .pill-icon {
     font-size: 16px;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .search-box-floating {
+        left: 16px;
+        right: 16px;
+        top: 16px;
+        width: auto;
+    }
+
+    .search-input-container {
+        width: 100%;
+        /* Full width on mobile */
+    }
+
+    .category-pills-floating {
+        left: 16px;
+        right: 16px;
+        top: 72px;
+        /* Below search box */
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 4px;
+        /* Hide scrollbar visually */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .category-pills-floating::-webkit-scrollbar {
+        display: none;
+    }
 }
