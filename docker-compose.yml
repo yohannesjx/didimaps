@@ -1,64 +1,49 @@
 services:
   tileserver:
-    image: maptiler/tileserver-gl:v4.6.0
+    image: ghcr.io/consbio/mbtileserver:latest
     container_name: tileserver
-    ports:
-      - "8080:80"
     volumes:
-      - ./data/tiles:/data
+      - ./data/tiles:/tiles
+    ports:
+      - "8080:8080"
+    command: ["mbtileserver", "--dir", "/tiles", "--no-cors"]
     restart: unless-stopped
 
   osrm:
     image: ghcr.io/project-osrm/osrm-backend:v5.27.1
     container_name: osrm
-    ports:
-      - "5000:5000"
     volumes:
       - ./data/osrm:/data
-    command: osrm-routed --algorithm mld /data/monaco.osrm
+    ports:
+      - "5000:5000"
+    command: ["osrm-routed", "--algorithm", "mld", "/data/monaco.osrm"]
     restart: unless-stopped
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
-    container_name: elasticsearch
+  nominatim:
+    image: mediagis/nominatim:4.4
+    container_name: nominatim
     environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - "discovery.type=single-node"
-      - "xpack.security.enabled=false"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    ports:
-      - "9200:9200"
+      - NOMINATIM_PBF_URL=https://download.geofabrik.de/europe/monaco-latest.osm.pbf
+      - NOMINATIM_IMPORT_WIKIPEDIA=false
     volumes:
-      - ./data/esdata:/usr/share/elasticsearch/data
-    restart: unless-stopped
-
-  photon:
-    image: ghcr.io/komoot/photon:0.5.0
-    container_name: photon
+      - ./data/nominatim:/var/lib/postgresql/14/main
     ports:
-      - "2322:2322"
-    depends_on:
-      - elasticsearch
-    volumes:
-      - ./data/photon:/var/lib/photon
+      - "7070:7070"
     restart: unless-stopped
 
   api:
     build: ./api
     container_name: api
-    ports:
-      - "8000:8000"
     environment:
       - OSRM_HOST=http://osrm:5000
-      - PHOTON_HOST=http://photon:2322
-      - TILE_HOST=http://tileserver:80
+      - GEOCODER_HOST=http://nominatim:7070
+      - TILE_HOST=http://tileserver:8080
       - JWT_SECRET=change-this-in-production
       - RATE_LIMIT=100
+    ports:
+      - "8000:8000"
     depends_on:
       - osrm
-      - photon
+      - nominatim
       - tileserver
     restart: unless-stopped
