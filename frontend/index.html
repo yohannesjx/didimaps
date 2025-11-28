@@ -10,6 +10,13 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+    /* Hide MapLibre logo and attribution for a cleaner UI (keep attribution elsewhere if needed) */
+    .maplibregl-ctrl-logo,
+    .maplibregl-ctrl-attrib,
+    .maplibregl-ctrl-attrib-inner {
+      display: none !important;
+    }
     
     .controls {
       position: absolute;
@@ -235,7 +242,7 @@
       container: 'map',
       style: {
         version: 8,
-        name: 'Addis Ababa',
+        name: 'Addis Ababa - Light BW',
         glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
         sources: {
           'osm-tiles': {
@@ -245,28 +252,28 @@
           }
         },
         layers: [
-          // Background
+          // Background (pure white)
           {
             id: 'background',
             type: 'background',
-            paint: { 'background-color': '#f8f4f0' }
+            paint: { 'background-color': '#ffffff' }
           },
-          // Water
+          // Water (strong blue)
           {
             id: 'water',
             type: 'fill',
             source: 'osm-tiles',
             'source-layer': 'water',
-            paint: { 'fill-color': '#a0c8f0' }
+            paint: { 'fill-color': '#a6c8ff' }
           },
-          // Landuse
+          // Landuse (very subtle light grey)
           {
             id: 'landuse-residential',
             type: 'fill',
             source: 'osm-tiles',
             'source-layer': 'landuse',
             filter: ['==', 'class', 'residential'],
-            paint: { 'fill-color': '#e8e0d8' }
+            paint: { 'fill-color': '#f2f2f2' }
           },
           {
             id: 'landuse-park',
@@ -274,7 +281,7 @@
             source: 'osm-tiles',
             'source-layer': 'landuse',
             filter: ['in', 'class', 'park', 'grass'],
-            paint: { 'fill-color': '#c8e6c8' }
+            paint: { 'fill-color': '#eef6ee' }
           },
           // Buildings
           {
@@ -283,22 +290,25 @@
             source: 'osm-tiles',
             'source-layer': 'building',
             paint: {
-              'fill-color': '#d9d0c9',
-              'fill-opacity': 0.8
+              'fill-color': '#e3e3e3',
+              'fill-outline-color': '#cfcfcf',
+              'fill-opacity': 0.9
             }
           },
-          // Roads
+          // Minor roads (light grey)
           {
             id: 'roads-minor',
             type: 'line',
             source: 'osm-tiles',
             'source-layer': 'transportation',
-            filter: ['in', 'class', 'minor', 'service'],
+            filter: ['in', 'class', 'minor', 'service', 'residential'],
             paint: {
-              'line-color': '#ffffff',
-              'line-width': 2
+              'line-color': '#e0e0e0',
+              'line-width': 1.2,
+              'line-opacity': 1
             }
           },
+          // Secondary roads (dark grey)
           {
             id: 'roads-secondary',
             type: 'line',
@@ -306,10 +316,12 @@
             'source-layer': 'transportation',
             filter: ['==', 'class', 'secondary'],
             paint: {
-              'line-color': '#f7fabf',
-              'line-width': 4
+              'line-color': '#b3b3b3',
+              'line-width': 2.2,
+              'line-opacity': 1
             }
           },
+          // Primary roads (almost black)
           {
             id: 'roads-primary',
             type: 'line',
@@ -317,10 +329,12 @@
             'source-layer': 'transportation',
             filter: ['==', 'class', 'primary'],
             paint: {
-              'line-color': '#fcd6a4',
-              'line-width': 5
+              'line-color': '#4a4a4a',
+              'line-width': 3,
+              'line-opacity': 1
             }
           },
+          // Trunk/motorway (pure black)
           {
             id: 'roads-trunk',
             type: 'line',
@@ -328,8 +342,22 @@
             'source-layer': 'transportation',
             filter: ['in', 'class', 'trunk', 'motorway'],
             paint: {
-              'line-color': '#f9b29c',
-              'line-width': 6
+              'line-color': '#000000',
+              'line-width': 3.5,
+              'line-opacity': 1
+            }
+          },
+          // Road casing to give depth on trunk/motorway
+          {
+            id: 'roads-trunk-casing',
+            type: 'line',
+            source: 'osm-tiles',
+            'source-layer': 'transportation',
+            filter: ['in', 'class', 'trunk', 'motorway'],
+            paint: {
+              'line-color': '#c0c0c0',
+              'line-width': 5,
+              'line-opacity': 0.7
             }
           },
           // Road labels
@@ -340,13 +368,13 @@
             'source-layer': 'transportation_name',
             layout: {
               'text-field': '{name}',
-              'text-size': 10,
+              'text-size': 11,
               'symbol-placement': 'line'
             },
             paint: {
-              'text-color': '#666',
-              'text-halo-color': '#fff',
-              'text-halo-width': 1
+              'text-color': '#7a7a7a',
+              'text-halo-color': '#ffffff',
+              'text-halo-width': 1.5
             }
           },
           // Place labels
@@ -360,9 +388,9 @@
               'text-size': ['interpolate', ['linear'], ['zoom'], 10, 12, 14, 16]
             },
             paint: {
-              'text-color': '#333',
-              'text-halo-color': '#fff',
-              'text-halo-width': 1.5
+              'text-color': '#222222',
+              'text-halo-color': '#ffffff',
+              'text-halo-width': 2
             }
           },
           // POI labels
@@ -374,12 +402,12 @@
             minzoom: 14,
             layout: {
               'text-field': '{name}',
-              'text-size': 10
+              'text-size': 11
             },
             paint: {
-              'text-color': '#666',
-              'text-halo-color': '#fff',
-              'text-halo-width': 1
+              'text-color': '#555555',
+              'text-halo-color': '#ffffff',
+              'text-halo-width': 1.5
             }
           }
         ]

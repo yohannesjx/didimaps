@@ -58,15 +58,37 @@ services:
       - TILE_HOST=http://tileserver:8000
       - JWT_SECRET=${JWT_SECRET:-CHANGE_ME_IN_PRODUCTION}
       - RATE_LIMIT=100
+      # Database config
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=didi
+      - DB_PASSWORD=didi_password
+      - DB_NAME=didi
+      - DB_SSLMODE=disable
     expose:
       - "8000"
     depends_on:
       - osrm
       - nominatim
       - tileserver
+      - postgres
+    restart: unless-stopped
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=didi
+      - POSTGRES_PASSWORD=didi_password
+      - POSTGRES_DB=didi
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
     restart: unless-stopped
 
 volumes:
   nominatim-data:
   caddy-data:
   caddy-config:
+  postgres-data:
