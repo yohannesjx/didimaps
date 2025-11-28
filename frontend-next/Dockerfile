@@ -5,9 +5,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-
-# Install deps
+# Install all dependencies (including devDependencies like TypeScript)
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -24,13 +22,12 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy only the necessary output and minimal files
+# Copy only what we need to run the built app
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/package-lock.json ./
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-
-# Install production deps only
-RUN npm install --omit=dev
+COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3000
 
