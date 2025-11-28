@@ -25,7 +25,7 @@
     "openmaptiles": {
       "type": "vector",
       "tiles": [
-        "https://maps.didi.et/tiles/{z}/{x}/{y}.pbf"
+        "/api/tiles/{z}/{x}/{y}.pbf"
       ],
       "minzoom": 0,
       "maxzoom": 14

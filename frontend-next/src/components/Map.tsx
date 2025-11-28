@@ -31,6 +31,14 @@ export default function Map() {
           style.glyphs = `${origin}${style.glyphs}`;
         }
 
+        // Resolve absolute URL for sources
+        Object.keys(style.sources).forEach((sourceKey) => {
+          const source = style.sources[sourceKey];
+          if (source.tiles) {
+            source.tiles = source.tiles.map((t: string) => t.startsWith('/') ? `${origin}${t}` : t);
+          }
+        });
+
         map.current = new maplibregl.Map({
           container: mapContainer.current!,
           style: style, // Pass the modified style object
