@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './Map.css';
 
-export default function Map({ selectedBusiness, businesses, onMarkerClick, directionsDestination, userLocation, isSidebarVisible }) {
+export default function Map({ selectedBusiness, businesses, onMarkerClick, directionsDestination, userLocation, isSidebarVisible, onMapMove }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markers = useRef([]);
@@ -104,6 +104,14 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             }
         };
         window.addEventListener('resize', handleResize);
+
+        // Track map movement
+        map.current.on('move', () => {
+            if (onMapMove) {
+                const center = map.current.getCenter();
+                onMapMove({ lat: center.lat, lng: center.lng });
+            }
+        });
 
         // Update padding when sidebar visibility changes
         if (map.current) {
