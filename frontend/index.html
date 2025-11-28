@@ -196,6 +196,7 @@
       style: {
         version: 8,
         name: 'Addis Ababa',
+        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
         sources: {
           'osm-tiles': {
             type: 'vector',
@@ -349,10 +350,6 @@
 
     // Add navigation controls
     map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
-    map.addControl(new maplibregl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true },
-      trackUserLocation: true
-    }), 'bottom-right');
 
     // ============ AUTH ============
     async function login() {
