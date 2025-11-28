@@ -8,6 +8,10 @@ import './App.css?v=2'; // Force cache bust
 function App() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('search'); // search, directions
+  const [directionsDestination, setDirectionsDestination] = useState(null);
+  const [userLocation, setUserLocation] = useState({ lat: 9.0000, lng: 38.7500 }); // Default center
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Hidden by default
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -84,11 +88,6 @@ function App() {
     const debounce = setTimeout(fetchBusinesses, 500);
     return () => clearTimeout(debounce);
   }, [searchQuery, userLocation]);
-
-  const [viewMode, setViewMode] = useState('search'); // search, directions
-  const [directionsDestination, setDirectionsDestination] = useState(null);
-  const [userLocation, setUserLocation] = useState({ lat: 9.0000, lng: 38.7500 }); // Default center
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Hidden by default
 
   useEffect(() => {
     // Listen for directions requests from cards
