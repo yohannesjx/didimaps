@@ -1,10 +1,74 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
+import 'maplibregl/dist/maplibre-gl.css';
 import './Map.css';
 import { decodePolyline } from '../utils/polyline';
 
 const getStyle = (mode) => {
+    if (mode === 'satellite') {
+        return {
+            version: 8,
+            sources: {
+                satellite: {
+                    type: 'raster',
+                    tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+                    tileSize: 256,
+                    attribution: 'Esri'
+                },
+                openmaptiles: {
+                    type: 'vector',
+                    tiles: [window.location.origin + '/api/tiles/{z}/{x}/{y}.pbf'],
+                    minzoom: 0,
+                    maxzoom: 14,
+                }
+            },
+            layers: [
+                {
+                    id: 'satellite',
+                    type: 'raster',
+                    source: 'satellite',
+                    paint: { 'raster-opacity': 1 }
+                },
+                {
+                    id: 'roads',
+                    type: 'line',
+                    source: 'openmaptiles',
+                    'source-layer': 'transportation',
+                    paint: { 'line-color': '#ffffff', 'line-width': 1, 'line-opacity': 0.6 }
+                },
+                {
+                    id: '3d-buildings',
+                    source: 'openmaptiles',
+                    'source-layer': 'building',
+                    type: 'fill-extrusion',
+                    minzoom: 13,
+                    paint: {
+                        'fill-extrusion-color': '#ffffff',
+                        'fill-extrusion-height': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            13,
+                            0,
+                            13.05,
+                            ['get', 'render_height']
+                        ],
+                        'fill-extrusion-base': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            13,
+                            0,
+                            13.05,
+                            ['get', 'render_min_height']
+                        ],
+                        'fill-extrusion-opacity': 0.2
+                    },
+                },
+            ]
+        };
+    }
+
     const isDark = mode === 'dark';
     return {
         version: 8,
@@ -82,6 +146,8 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
     const markers = useRef([]);
     const userMarkerRef = useRef(null);
     const [styleMode, setStyleMode] = useState('dark');
+    const [is3D, setIs3D] = useState(true);
+    const [showLayerMenu, setShowLayerMenu] = useState(false);
 
     useEffect(() => {
         if (map.current) return; // Initialize map only once
@@ -99,8 +165,6 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
 
         // Add navigation controls (Zoom in/out) to bottom-right
         map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
-
-
 
         // Handle window resize to adjust padding dynamically
         const handleResize = () => {
@@ -314,15 +378,70 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             map.current.flyTo({
                 center: [userLocation.lng, userLocation.lat],
                 zoom: 17,
-                pitch: 50,
+                pitch: is3D ? 50 : 0,
                 duration: 2000
             });
+        }
+    };
+
+    const toggle3D = () => {
+        const nextState = !is3D;
+        setIs3D(nextState);
+        if (map.current) {
+            map.current.easeTo({
+                pitch: nextState ? 60 : 0,
+                duration: 1000
+            });
+        }
+    };
+
+    const changeStyle = (mode) => {
+        setStyleMode(mode);
+        setShowLayerMenu(false);
+        if (map.current) {
+            map.current.setStyle(getStyle(mode));
         }
     };
 
     return (
         <div className="map-wrapper" style={{ position: 'relative', width: '100%', height: '100vh' }}>
             <div ref={mapContainer} className="map-container" />
+
+            {/* Top Right Controls */}
+            <div style={{ position: 'absolute', top: '20px', right: '10px', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* Layer Switcher */}
+                <div style={{ position: 'relative' }}>
+                    <button
+                        className="map-control-btn"
+                        onClick={() => setShowLayerMenu(!showLayerMenu)}
+                        title="Layers"
+                        style={{ width: '40px', height: '40px', background: 'white', border: 'none', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '20px' }}
+                    >
+                        🗺️
+                    </button>
+                    {showLayerMenu && (
+                        <div className="layer-menu" style={{
+                            position: 'absolute', top: '0', right: '50px',
+                            background: 'white', padding: '8px', borderRadius: '8px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '120px'
+                        }}>
+                            <div onClick={() => changeStyle('dark')} style={{ padding: '8px', cursor: 'pointer', borderRadius: '4px', background: styleMode === 'dark' ? '#f0f0f0' : 'transparent' }}>🌑 Dark</div>
+                            <div onClick={() => changeStyle('light')} style={{ padding: '8px', cursor: 'pointer', borderRadius: '4px', background: styleMode === 'light' ? '#f0f0f0' : 'transparent' }}>☀️ Light</div>
+                            <div onClick={() => changeStyle('satellite')} style={{ padding: '8px', cursor: 'pointer', borderRadius: '4px', background: styleMode === 'satellite' ? '#f0f0f0' : 'transparent' }}>🛰️ Satellite</div>
+                        </div>
+                    )}
+                </div>
+
+                {/* 3D Toggle */}
+                <button
+                    className="map-control-btn"
+                    onClick={toggle3D}
+                    title="Toggle 2D/3D"
+                    style={{ width: '40px', height: '40px', background: 'white', border: 'none', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
+                >
+                    {is3D ? '2D' : '3D'}
+                </button>
+            </div>
 
             {/* Locate Me Button */}
             <button
