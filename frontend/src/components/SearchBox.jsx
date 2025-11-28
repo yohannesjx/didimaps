@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import './SearchBox.css';
 
-export default function SearchBox({ query, onSearch, onAddBusiness, user }) {
+export default function SearchBox({ query, onSearch }) {
     const [activeCategory, setActiveCategory] = useState('all');
 
     const categories = [
         { id: 'all', label: 'All' },
-        { id: 'food', label: 'Fast food' },
-        { id: 'restaurant', label: 'Restaurants' },
+        { id: 'food', label: 'Restaurants' },
         { id: 'cafe', label: 'Cafes' },
         { id: 'shopping', label: 'Shopping' },
         { id: 'services', label: 'Services' },
@@ -30,10 +29,6 @@ export default function SearchBox({ query, onSearch, onAddBusiness, user }) {
                         <button className="clear-search" onClick={() => onSearch('')}>✕</button>
                     )}
                 </div>
-
-                <button className="add-business-btn" onClick={onAddBusiness}>
-                    {user ? '+ Add Business' : '🔐 Sign In to Add Business'}
-                </button>
             </div>
 
             {/* Floating Category Pills */}

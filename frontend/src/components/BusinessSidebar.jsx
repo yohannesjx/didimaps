@@ -3,66 +3,56 @@ import BusinessCard from './BusinessCard';
 import './BusinessSidebar.css';
 
 export default function BusinessList({ onSelectBusiness, searchQuery }) {
-    const [businesses, setBusinesses] = useState([]);
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        const fetchBusinesses = async () => {
-            setLoading(true);
-            try {
-                // Fetch from API - using nearby search for Addis Ababa center
-                const lat = 8.9806;
-                const lng = 38.7578;
-                const radius = 5000; // 5km radius
-
-                const url = `/api/businesses/nearby?lat=${lat}&lng=${lng}&radius=${radius}${searchQuery ? `&query=${encodeURIComponent(searchQuery)}` : ''}`;
-
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Failed to fetch businesses');
-
-                const data = await response.json();
-                setBusinesses(data.businesses || []);
-            } catch (error) {
-                console.error('Error fetching businesses:', error);
-                // Fallback to mock data if API fails
-                setBusinesses([
-                    {
-                        id: '1',
-                        name: 'Sample Restaurant',
-                        rating: 4.5,
-                        category: 'Restaurant',
-                        address: 'Addis Ababa, Ethiopia',
-                        status: 'Open',
-                        hours: '500-1000 Birr',
-                    },
-                ]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchBusinesses();
-    }, [searchQuery]);
+    const [businesses] = useState([
+        {
+            id: '1',
+            name: 'Yod Abyssinia',
+            rating: 4.8,
+            review_count: 342,
+            category: 'Ethiopian Restaurant',
+            address: 'Bole, Addis Ababa',
+            status: 'Open until 11:00 PM',
+            description: 'Traditional Ethiopian cuisine with live cultural shows',
+            verified: true,
+        },
+        {
+            id: '2',
+            name: 'Tomoca Coffee',
+            rating: 4.9,
+            review_count: 521,
+            category: 'Coffee Shop',
+            address: 'Wawel Street, Addis Ababa',
+            status: 'Open until 8:00 PM',
+            description: 'Authentic Ethiopian coffee since 1953',
+            verified: true,
+        },
+        {
+            id: '3',
+            name: 'Castelli Restaurant',
+            rating: 4.6,
+            review_count: 198,
+            category: 'Italian Restaurant',
+            address: 'Piazza, Addis Ababa',
+            status: 'Open until 10:00 PM',
+            description: 'Historic Italian restaurant with great ambiance',
+        },
+    ]);
 
     return (
         <div className="business-list">
             <div className="business-list-header">
-                <h2>Fast food</h2>
-                <p>{businesses.length} places</p>
+                <h2>Places in Addis Ababa</h2>
+                <p>{businesses.length} businesses</p>
             </div>
 
             <div className="business-cards">
-                {loading ? (
-                    <div className="loading">Loading...</div>
-                ) : (
-                    businesses.map((business) => (
-                        <BusinessCard
-                            key={business.id}
-                            business={business}
-                            onClick={() => onSelectBusiness(business)}
-                        />
-                    ))
-                )}
+                {businesses.map((business) => (
+                    <BusinessCard
+                        key={business.id}
+                        business={business}
+                        onClick={() => onSelectBusiness(business)}
+                    />
+                ))}
             </div>
         </div>
     );
