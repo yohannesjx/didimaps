@@ -26,6 +26,23 @@ function App() {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Get User Location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    }
+  }, []);
+
   // Fetch businesses from API
   useEffect(() => {
     const fetchBusinesses = async () => {

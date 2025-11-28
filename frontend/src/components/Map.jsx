@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './Map.css';
+import { decodePolyline } from '../utils/polyline';
 
 export default function Map({ selectedBusiness, businesses, onMarkerClick, directionsDestination, userLocation, isSidebarVisible, onMapMove }) {
     const mapContainer = useRef(null);
@@ -211,49 +212,56 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         }
 
         if (directionsDestination && userLocation) {
-            // Create a simple straight line for now (mock route)
-            // In a real app, this would fetch geometry from a routing API (OSRM/Valhalla)
-            const routeGeoJSON = {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                    type: 'LineString',
-                    coordinates: [
-                        [userLocation.lng, userLocation.lat],
-                        [directionsDestination.lng, directionsDestination.lat]
-                    ]
+            const fetchRoute = async () => {
+                try {
+                    const res = await fetch(`/api/route?from=${userLocation.lat},${userLocation.lng}&to=${directionsDestination.lat},${directionsDestination.lng}`);
+                    if (!res.ok) throw new Error('Route fetch failed');
+                    const data = await res.json();
+
+                    if (data.routes && data.routes.length > 0) {
+                        const geometry = data.routes[0].geometry;
+                        const coordinates = decodePolyline(geometry);
+
+                        const routeGeoJSON = {
+                            type: 'Feature',
+                            properties: {},
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: coordinates
+                            }
+                        };
+
+                        map.current.addSource('route', {
+                            type: 'geojson',
+                            data: routeGeoJSON
+                        });
+
+                        map.current.addLayer({
+                            id: 'route',
+                            type: 'line',
+                            source: 'route',
+                            layout: {
+                                'line-join': 'round',
+                                'line-cap': 'round'
+                            },
+                            paint: {
+                                'line-color': '#4285f4',
+                                'line-width': 6,
+                                'line-opacity': 0.8
+                            }
+                        });
+
+                        // Fit bounds
+                        const bounds = new maplibregl.LngLatBounds();
+                        coordinates.forEach(coord => bounds.extend(coord));
+                        map.current.fitBounds(bounds, { padding: 50, maxZoom: 15 });
+                    }
+                } catch (err) {
+                    console.error('Routing error:', err);
                 }
             };
 
-            map.current.addSource('route', {
-                type: 'geojson',
-                data: routeGeoJSON
-            });
-
-            map.current.addLayer({
-                id: 'route',
-                type: 'line',
-                source: 'route',
-                layout: {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                paint: {
-                    'line-color': '#4285f4',
-                    'line-width': 6,
-                    'line-opacity': 0.8
-                }
-            });
-
-            // Fit bounds to show route
-            const bounds = new maplibregl.LngLatBounds()
-                .extend([userLocation.lng, userLocation.lat])
-                .extend([directionsDestination.lng, directionsDestination.lat]);
-
-            map.current.fitBounds(bounds, {
-                padding: 50,
-                maxZoom: 15
-            });
+            fetchRoute();
         }
     }, [directionsDestination, userLocation]);
 

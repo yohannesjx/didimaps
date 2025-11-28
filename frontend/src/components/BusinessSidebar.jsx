@@ -39,12 +39,15 @@ export default function BusinessSidebar({ businesses, selectedBusiness, onSelect
                     }}>
                         <span className="icon">🔷</span> Directions
                     </button>
-                    <button className="action-btn secondary">
+                    <button className="action-btn secondary" onClick={() => {
+                        const event = new CustomEvent('requestDirections', { detail: selectedBusiness });
+                        window.dispatchEvent(event);
+                    }}>
                         <span className="icon">🚀</span> Start
                     </button>
-                    <button className="action-btn secondary">
+                    <a href={`tel:${selectedBusiness.phone}`} className="action-btn secondary" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <span className="icon">📞</span> Call
-                    </button>
+                    </a>
                     <button className="action-btn secondary">
                         <span className="icon">🔖</span> Save
                     </button>
