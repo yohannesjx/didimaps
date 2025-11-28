@@ -168,11 +168,88 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
     const [is3D, setIs3D] = useState(true);
     const [showLayerMenu, setShowLayerMenu] = useState(false);
 
-    // ... (useEffect for map init remains same)
+    useEffect(() => {
+        if (map.current) return; // Initialize map only once
 
-    // ... (useEffect for user marker remains same)
+        map.current = new maplibregl.Map({
+            container: mapContainer.current,
+            style: getStyle('dark'),
+            center: [38.7578, 8.9806], // Addis Ababa
+            zoom: 15,
+            maxZoom: 18,
+            pitch: 45,
+            // Initial padding: 360px left for desktop, 0 for mobile
+            padding: { left: window.innerWidth > 768 ? 360 : 0 },
+            attributionControl: false, // Hide default attribution
+        });
 
-    // ... (useEffect for padding remains same)
+        // Add navigation controls (Zoom in/out) to bottom-right
+        map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+
+        // Handle window resize to adjust padding dynamically
+        const handleResize = () => {
+            if (map.current) {
+                const isDesktop = window.innerWidth > 768;
+                map.current.easeTo({
+                    padding: { left: (isDesktop && isSidebarVisible) ? 360 : 0 },
+                    duration: 300
+                });
+            }
+        };
+        window.addEventListener('resize', handleResize);
+
+        // Track map movement
+        map.current.on('move', () => {
+            if (onMapMove) {
+                const center = map.current.getCenter();
+                onMapMove({ lat: center.lat, lng: center.lng });
+            }
+        });
+
+        // Update padding when sidebar visibility changes
+        if (map.current) {
+            const isDesktop = window.innerWidth > 768;
+            map.current.easeTo({
+                padding: { left: (isDesktop && isSidebarVisible) ? 360 : 0 },
+                duration: 300
+            });
+        }
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            if (map.current) {
+                map.current.remove();
+                map.current = null;
+            }
+        };
+    }, []);
+
+    // Update User Marker
+    useEffect(() => {
+        if (!map.current || !userLocation) return;
+
+        if (!userMarkerRef.current) {
+            const el = document.createElement('div');
+            el.className = 'user-marker';
+            userMarkerRef.current = new maplibregl.Marker(el)
+                .setLngLat([userLocation.lng, userLocation.lat])
+                .addTo(map.current);
+        } else {
+            userMarkerRef.current.setLngLat([userLocation.lng, userLocation.lat]);
+        }
+    }, [userLocation]);
+
+    // Update padding when sidebar visibility changes
+    useEffect(() => {
+        if (map.current) {
+            const isDesktop = window.innerWidth > 768;
+            map.current.easeTo({
+                padding: { left: (isDesktop && isSidebarVisible) ? 360 : 0 },
+                duration: 300
+            });
+        }
+    }, [isSidebarVisible]);
 
     // Update markers when businesses change
     useEffect(() => {
