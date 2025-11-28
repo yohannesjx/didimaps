@@ -1,6 +1,6 @@
 services:
   tileserver:
-    image: docker.io/maptiler/tileserver-gl:latest
+    image: maptiler/tileserver-gl:v4.6.0
     container_name: tileserver
     ports:
       - "8080:80"
@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
 
   osrm:
-    image: docker.io/osrm/osrm-backend:latest
+    image: ghcr.io/project-osrm/osrm-backend:v5.27.1
     container_name: osrm
     ports:
       - "5000:5000"
@@ -19,11 +19,12 @@ services:
     restart: unless-stopped
 
   elasticsearch:
-    image: docker.io/elasticsearch:7.17.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
     container_name: elasticsearch
     environment:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
     ulimits:
       memlock:
         soft: -1
@@ -35,7 +36,7 @@ services:
     restart: unless-stopped
 
   photon:
-    image: docker.io/komoot/photon:latest
+    image: ghcr.io/komoot/photon:0.5.0
     container_name: photon
     ports:
       - "2322:2322"
