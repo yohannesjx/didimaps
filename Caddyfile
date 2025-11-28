@@ -1,9 +1,4 @@
 maps.didi.et {
-    # Frontend - Next.js app in Docker (frontend-next service)
-    handle / {
-        reverse_proxy frontend-next:3000
-    }
-
     # API Gateway
     handle /api/* {
         reverse_proxy api:8000
@@ -21,6 +16,11 @@ maps.didi.et {
     handle /tiles/* {
         uri strip_prefix /tiles
         reverse_proxy tileserver:8000
+    }
+
+    # Frontend - catch-all for everything else (Next.js app in Docker)
+    handle {
+        reverse_proxy frontend-next:3000
     }
 
     # Enable compression
