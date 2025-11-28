@@ -98,14 +98,11 @@ services:
       - postgres
     restart: unless-stopped
 
-  frontend-next:
-    build: ./frontend-next
-    container_name: frontend-next
-    environment:
-      - NEXT_PUBLIC_API_URL=https://maps.didi.et
-      - NEXT_PUBLIC_TILE_URL=https://maps.didi.et/api/tiles/{z}/{x}/{y}.pbf
+  frontend:
+    build: ./frontend
+    container_name: frontend
     expose:
-      - "3000"
+      - "80"
     depends_on:
       - api
     restart: unless-stopped

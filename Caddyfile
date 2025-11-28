@@ -19,9 +19,9 @@ maps.didi.et {
         reverse_proxy tileserver:8000
     }
 
-    # Frontend - catch-all for everything else (Next.js app in Docker)
+    # Frontend (SPA)
     handle {
-        reverse_proxy frontend-next:3000
+        reverse_proxy frontend:80
     }
 
     # Enable compression
