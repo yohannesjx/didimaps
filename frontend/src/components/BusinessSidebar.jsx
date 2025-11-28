@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import BusinessCard from './BusinessCard';
-import './BusinessList.css';
+import './BusinessSidebar.css';
 
 export default function BusinessList({ onSelectBusiness, searchQuery }) {
     const [businesses, setBusinesses] = useState([]);

@@ -1,26 +1,41 @@
 import { useState } from 'react';
 import Map from './components/Map';
-import SearchBar from './components/SearchBar';
-import BusinessList from './components/BusinessList';
+import SearchBox from './components/SearchBox';
+import BusinessSidebar from './components/BusinessSidebar';
+import AuthModal from './components/AuthModal';
 import './App.css';
 
 function App() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAuth, setShowAuth] = useState(false);
+  const [user, setUser] = useState(null);
 
   return (
     <div className="app">
-      <SearchBar
+      <Map selectedBusiness={selectedBusiness} />
+
+      <SearchBox
         query={searchQuery}
         onSearch={setSearchQuery}
+        onAddBusiness={() => setShowAuth(true)}
+        user={user}
       />
-      <div className="main-content">
-        <BusinessList
-          onSelectBusiness={setSelectedBusiness}
-          searchQuery={searchQuery}
+
+      <BusinessSidebar
+        onSelectBusiness={setSelectedBusiness}
+        searchQuery={searchQuery}
+      />
+
+      {showAuth && (
+        <AuthModal
+          onClose={() => setShowAuth(false)}
+          onSuccess={(userData) => {
+            setUser(userData);
+            setShowAuth(false);
+          }}
         />
-        <Map selectedBusiness={selectedBusiness} />
-      </div>
+      )}
     </div>
   );
 }

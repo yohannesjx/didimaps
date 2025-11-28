@@ -1,0 +1,63 @@
+/* Floating Sidebar */
+.business-list {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 380px;
+    max-height: calc(100vh - 40px);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 999;
+}
+
+.business-list-header {
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.business-list-header h2 {
+    margin: 0 0 6px 0;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.business-list-header p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.business-cards {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.business-cards::-webkit-scrollbar {
+    width: 6px;
+}
+
+.business-cards::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.business-cards::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.business-cards::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.loading {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+    font-size: 15px;
+}
