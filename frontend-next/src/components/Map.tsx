@@ -10,7 +10,7 @@ export default function Map() {
   // Default to Addis Ababa, Ethiopia
   const [lng] = useState(38.7578);
   const [lat] = useState(8.9806);
-  const [zoom] = useState(12);
+  const [zoom] = useState(10);
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
