@@ -11,7 +11,7 @@ type Config struct {
 	JWTExpiry     int // minutes
 	RefreshExpiry int // hours
 	OSRMHost      string
-	PhotonHost    string
+	GeocoderHost  string
 	TileHost      string
 	RateLimit     int // requests per minute
 }
@@ -23,8 +23,8 @@ func Load() *Config {
 		JWTExpiry:     getEnvInt("JWT_EXPIRY", 15),
 		RefreshExpiry: getEnvInt("REFRESH_EXPIRY", 168), // 7 days
 		OSRMHost:      getEnv("OSRM_HOST", "http://osrm:5000"),
-		PhotonHost:    getEnv("PHOTON_HOST", "http://photon:2322"),
-		TileHost:      getEnv("TILE_HOST", "http://tileserver:80"),
+		GeocoderHost:  getEnv("GEOCODER_HOST", "http://nominatim:8080"),
+		TileHost:      getEnv("TILE_HOST", "http://tileserver:8080"),
 		RateLimit:     getEnvInt("RATE_LIMIT", 100),
 	}
 }

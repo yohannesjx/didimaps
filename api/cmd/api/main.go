@@ -65,6 +65,8 @@ func main() {
 
 		// Tile endpoints
 		r.Get("/tiles/{z}/{x}/{y}.pbf", handlers.GetTile(cfg))
+		r.Get("/tiles/json", handlers.GetTileJSON(cfg))
+		r.Get("/tiles/list", handlers.ListTilesets(cfg))
 	})
 
 	// Create server

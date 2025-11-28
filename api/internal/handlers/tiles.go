@@ -11,6 +11,8 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// GetTile proxies tile requests to mbtileserver
+// mbtileserver URL format: /services/{tileset}/{z}/{x}/{y}.pbf
 func GetTile(cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		z := chi.URLParam(r, "z")
@@ -22,7 +24,14 @@ func GetTile(cfg *config.Config) http.HandlerFunc {
 			return
 		}
 
-		tileURL := fmt.Sprintf("%s/data/v3/%s/%s/%s.pbf", cfg.TileHost, z, x, y)
+		// mbtileserver format: /services/{tileset}/{z}/{x}/{y}.pbf
+		// Default tileset name based on .mbtiles filename
+		tileset := r.URL.Query().Get("tileset")
+		if tileset == "" {
+			tileset = "osm" // default tileset name
+		}
+
+		tileURL := fmt.Sprintf("%s/services/%s/tiles/%s/%s/%s.pbf", cfg.TileHost, tileset, z, x, y)
 
 		resp, err := http.Get(tileURL)
 		if err != nil {
@@ -45,6 +54,60 @@ func GetTile(cfg *config.Config) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/x-protobuf")
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Cache-Control", "public, max-age=86400")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(resp.StatusCode)
+		w.Write(body)
+	}
+}
+
+// GetTileJSON returns the TileJSON metadata for a tileset
+func GetTileJSON(cfg *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tileset := r.URL.Query().Get("tileset")
+		if tileset == "" {
+			tileset = "osm"
+		}
+
+		tileJSONURL := fmt.Sprintf("%s/services/%s", cfg.TileHost, tileset)
+
+		resp, err := http.Get(tileJSONURL)
+		if err != nil {
+			jsonError(w, "tile service unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			jsonError(w, "failed to read tilejson", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(resp.StatusCode)
+		w.Write(body)
+	}
+}
+
+// ListTilesets returns available tilesets from mbtileserver
+func ListTilesets(cfg *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resp, err := http.Get(fmt.Sprintf("%s/services", cfg.TileHost))
+		if err != nil {
+			jsonError(w, "tile service unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			jsonError(w, "failed to read tilesets", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(resp.StatusCode)
 		w.Write(body)
 	}
