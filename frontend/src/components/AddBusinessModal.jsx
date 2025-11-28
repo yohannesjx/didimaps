@@ -8,6 +8,8 @@ export default function AddBusinessModal({ isOpen, onClose, onPickLocation, pick
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState([]);
 
+    const [uploading, setUploading] = useState(false);
+
     // Form State
     const [formData, setFormData] = useState({
         name: '',
@@ -15,7 +17,8 @@ export default function AddBusinessModal({ isOpen, onClose, onPickLocation, pick
         phone: '',
         description: '',
         lat: null,
-        lng: null
+        lng: null,
+        photos: []
     });
 
     useEffect(() => {
@@ -42,6 +45,34 @@ export default function AddBusinessModal({ isOpen, onClose, onPickLocation, pick
         }
     };
 
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        const uploadData = new FormData();
+        uploadData.append('file', file);
+
+        try {
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: uploadData
+            });
+            if (!res.ok) throw new Error('Upload failed');
+            const data = await res.json();
+
+            setFormData(prev => ({
+                ...prev,
+                photos: [...(prev.photos || []), { url: data.url }]
+            }));
+        } catch (err) {
+            alert('Failed to upload photo');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -61,7 +92,7 @@ export default function AddBusinessModal({ isOpen, onClose, onPickLocation, pick
             alert('Business created successfully!');
             onClose();
             // Reset form
-            setFormData({ name: '', category_id: '', phone: '', description: '', lat: null, lng: null });
+            setFormData({ name: '', category_id: '', phone: '', description: '', lat: null, lng: null, photos: [] });
             setStep(1);
         } catch (err) {
             alert(err.message);
@@ -149,6 +180,23 @@ export default function AddBusinessModal({ isOpen, onClose, onPickLocation, pick
                                 >
                                     📍 Pick Location on Map
                                 </button>
+                            </div>
+
+                            <div className="input-group">
+                                <label>Photos</label>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                    {formData.photos?.map((p, i) => (
+                                        <img key={i} src={p.url} alt="Business" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }} />
+                                    ))}
+                                    <label style={{
+                                        width: 60, height: 60, border: '1px dashed #ccc', borderRadius: 4,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                        background: uploading ? '#f5f5f5' : 'white'
+                                    }}>
+                                        {uploading ? '...' : '+'}
+                                        <input type="file" accept="image/*" onChange={handleFileChange} disabled={uploading} style={{ display: 'none' }} />
+                                    </label>
+                                </div>
                             </div>
 
                             <div className="input-group">
