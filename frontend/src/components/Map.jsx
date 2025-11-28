@@ -1,81 +1,97 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './Map.css';
 import { decodePolyline } from '../utils/polyline';
+
+const getStyle = (mode) => {
+    const isDark = mode === 'dark';
+    return {
+        version: 8,
+        sources: {
+            openmaptiles: {
+                type: 'vector',
+                tiles: [window.location.origin + '/api/tiles/{z}/{x}/{y}.pbf'],
+                minzoom: 0,
+                maxzoom: 14,
+            },
+        },
+        layers: [
+            {
+                id: 'background',
+                type: 'background',
+                paint: { 'background-color': isDark ? '#0c0c0c' : '#f8f9fa' },
+            },
+            {
+                id: 'water',
+                type: 'fill',
+                source: 'openmaptiles',
+                'source-layer': 'water',
+                paint: { 'fill-color': isDark ? '#1b1b1d' : '#aadaff' },
+            },
+            {
+                id: 'landcover',
+                type: 'fill',
+                source: 'openmaptiles',
+                'source-layer': 'landcover',
+                paint: { 'fill-color': isDark ? '#2a2a2a' : '#e6e6e6', 'fill-opacity': 0.4 },
+            },
+            {
+                id: 'roads',
+                type: 'line',
+                source: 'openmaptiles',
+                'source-layer': 'transportation',
+                paint: { 'line-color': isDark ? '#3a3a3a' : '#ffffff', 'line-width': 2 },
+            },
+            {
+                id: '3d-buildings',
+                source: 'openmaptiles',
+                'source-layer': 'building',
+                type: 'fill-extrusion',
+                minzoom: 13,
+                paint: {
+                    'fill-extrusion-color': isDark ? '#333' : '#d1d1d1',
+                    'fill-extrusion-height': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        13,
+                        0,
+                        13.05,
+                        ['get', 'render_height']
+                    ],
+                    'fill-extrusion-base': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        13,
+                        0,
+                        13.05,
+                        ['get', 'render_min_height']
+                    ],
+                    'fill-extrusion-opacity': 0.8
+                },
+            },
+        ],
+    };
+};
 
 export default function Map({ selectedBusiness, businesses, onMarkerClick, directionsDestination, userLocation, isSidebarVisible, onMapMove }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markers = useRef([]);
     const userMarkerRef = useRef(null);
+    const [styleMode, setStyleMode] = useState('dark');
 
     useEffect(() => {
         if (map.current) return; // Initialize map only once
 
         map.current = new maplibregl.Map({
             container: mapContainer.current,
-            style: {
-                version: 8,
-                sources: {
-                    openmaptiles: {
-                        type: 'vector',
-                        tiles: [window.location.origin + '/api/tiles/{z}/{x}/{y}.pbf'],
-                        minzoom: 0,
-                        maxzoom: 14,
-                    },
-                },
-                layers: [
-                    {
-                        id: 'background',
-                        type: 'background',
-                        paint: {
-                            'background-color': '#0c0c0c',
-                        },
-                    },
-                    {
-                        id: 'water',
-                        type: 'fill',
-                        source: 'openmaptiles',
-                        'source-layer': 'water',
-                        paint: {
-                            'fill-color': '#1b1b1d',
-                        },
-                    },
-                    {
-                        id: 'landcover',
-                        type: 'fill',
-                        source: 'openmaptiles',
-                        'source-layer': 'landcover',
-                        paint: {
-                            'fill-color': '#2a2a2a',
-                            'fill-opacity': 0.4,
-                        },
-                    },
-                    {
-                        id: 'roads',
-                        type: 'line',
-                        source: 'openmaptiles',
-                        'source-layer': 'transportation',
-                        paint: {
-                            'line-color': '#3a3a3a',
-                            'line-width': 2,
-                        },
-                    },
-                    {
-                        id: 'buildings',
-                        type: 'fill',
-                        source: 'openmaptiles',
-                        'source-layer': 'building',
-                        paint: {
-                            'fill-color': '#2a2a2a',
-                            'fill-opacity': 0.7,
-                        },
-                    },
-                ],
-            },
+            style: getStyle('dark'),
             center: [38.7578, 8.9806], // Addis Ababa
-            zoom: 12,
+            zoom: 15,
+            pitch: 45,
             // Initial padding: 360px left for desktop, 0 for mobile
             padding: { left: window.innerWidth > 768 ? 360 : 0 },
             attributionControl: false, // Hide default attribution
@@ -278,5 +294,37 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         }
     }, [directionsDestination, userLocation]);
 
-    return <div ref={mapContainer} className="map-container" />;
+    const toggleStyle = () => {
+        const newMode = styleMode === 'dark' ? 'light' : 'dark';
+        setStyleMode(newMode);
+        if (map.current) {
+            map.current.setStyle(getStyle(newMode));
+        }
+    };
+
+    return (
+        <div className="map-wrapper" style={{ position: 'relative', width: '100%', height: '100vh' }}>
+            <div ref={mapContainer} className="map-container" />
+            <button
+                className="layer-switch-btn"
+                onClick={toggleStyle}
+                style={{
+                    position: 'absolute',
+                    top: '20px',
+                    right: '60px',
+                    zIndex: 10,
+                    background: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '8px',
+                    boxShadow: '0 0 0 2px rgba(0,0,0,0.1)',
+                    cursor: 'pointer',
+                    fontSize: '20px'
+                }}
+                title="Switch Map Style"
+            >
+                {styleMode === 'dark' ? '☀️' : '🌙'}
+            </button>
+        </div>
+    );
 }
