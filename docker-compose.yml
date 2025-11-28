@@ -7,7 +7,6 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./frontend:/srv/frontend
       - caddy-data:/data
       - caddy-config:/config
     depends_on:
@@ -85,6 +84,18 @@ services:
       - postgres-data:/var/lib/postgresql/data
     expose:
       - "5432"
+    restart: unless-stopped
+
+  frontend-next:
+    build: ./frontend-next
+    container_name: frontend-next
+    environment:
+      - NEXT_PUBLIC_API_URL=https://maps.didi.et
+      - NEXT_PUBLIC_TILE_URL=https://maps.didi.et/tiles/{z}/{x}/{y}.pbf
+    expose:
+      - "3000"
+    depends_on:
+      - api
     restart: unless-stopped
 
 volumes:

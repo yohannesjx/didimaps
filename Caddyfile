@@ -1,9 +1,7 @@
 maps.didi.et {
-    # Frontend - serve static files
+    # Frontend - Next.js app in Docker (frontend-next service)
     handle / {
-        root * /srv/frontend
-        file_server
-        try_files {path} /index.html
+        reverse_proxy frontend-next:3000
     }
 
     # API Gateway

@@ -1,12 +1,11 @@
-import dynamic from 'next/dynamic';
+'use client';
 
-// Dynamic import to avoid SSR issues with MapLibre
-const Map = dynamic(() => import('@/components/Map'), { ssr: false });
-const SearchBar = dynamic(() => import('@/components/SearchBar'), { ssr: false });
-const CategoryBar = dynamic(() => import('@/components/CategoryBar'), { ssr: false });
-const BottomSheet = dynamic(() => import('@/components/BottomSheet'), { ssr: false });
-const RouteInfo = dynamic(() => import('@/components/RouteInfo'), { ssr: false });
-const ThemeToggle = dynamic(() => import('@/components/ThemeToggle'), { ssr: false });
+import Map from '@/components/Map';
+import SearchBar from '@/components/SearchBar';
+import CategoryBar from '@/components/CategoryBar';
+import BottomSheet from '@/components/BottomSheet';
+import RouteInfo from '@/components/RouteInfo';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Home() {
   return (
