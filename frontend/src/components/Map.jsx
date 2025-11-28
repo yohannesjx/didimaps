@@ -13,7 +13,8 @@ const getStyle = (mode) => {
                     type: 'raster',
                     tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
                     tileSize: 256,
-                    attribution: 'Esri'
+                    attribution: 'Esri',
+                    maxzoom: 18
                 },
                 openmaptiles: {
                     type: 'vector',
@@ -157,6 +158,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             style: getStyle('dark'),
             center: [38.7578, 8.9806], // Addis Ababa
             zoom: 15,
+            maxZoom: 18, // Limit max zoom
             pitch: 45,
             // Initial padding: 360px left for desktop, 0 for mobile
             padding: { left: window.innerWidth > 768 ? 360 : 0 },
