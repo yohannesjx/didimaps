@@ -89,6 +89,37 @@ export default function Map() {
             'top-right'
         );
 
+        // Add business markers
+        const businesses = [
+            { id: 1, name: 'Yod Abyssinia', lat: 8.9806, lng: 38.7578 },
+            { id: 2, name: 'Tomoca Coffee', lat: 9.0320, lng: 38.7469 },
+            { id: 3, name: 'Castelli Restaurant', lat: 9.0330, lng: 38.7400 },
+        ];
+
+        businesses.forEach((business) => {
+            // Create marker element
+            const el = document.createElement('div');
+            el.className = 'business-marker';
+            el.innerHTML = '📍';
+            el.style.fontSize = '24px';
+            el.style.cursor = 'pointer';
+
+            // Add marker to map
+            const marker = new maplibregl.Marker(el)
+                .setLngLat([business.lng, business.lat])
+                .addTo(map.current);
+
+            // Add popup
+            const popup = new maplibregl.Popup({ offset: 25 })
+                .setHTML(`<strong>${business.name}</strong>`);
+
+            el.addEventListener('click', () => {
+                popup.addTo(map.current);
+                marker.setPopup(popup);
+                marker.togglePopup();
+            });
+        });
+
         // Cleanup
         return () => {
             if (map.current) {
