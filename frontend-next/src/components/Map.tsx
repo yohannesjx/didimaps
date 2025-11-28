@@ -71,7 +71,7 @@ export default function Map() {
 
   return (
     <div className="relative w-full h-full min-h-screen bg-gray-100">
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainer} className="absolute inset-0 border-4 border-red-500" />
     </div>
   );
 }
