@@ -3,7 +3,7 @@ import Map from './components/Map';
 import SearchBox from './components/SearchBox';
 import BusinessSidebar from './components/BusinessSidebar';
 import DirectionsSidebar from './components/DirectionsSidebar';
-import './App.css';
+import './App.css?v=2'; // Force cache bust
 
 function App() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);

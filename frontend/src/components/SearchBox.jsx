@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './SearchBox.css';
+import './SearchBox.css?v=2';
 
 export default function SearchBox({ query, onSearch }) {
     const [activeCategory, setActiveCategory] = useState('all');

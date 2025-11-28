@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import BusinessCard from './BusinessCard';
-import './BusinessSidebar.css';
+import './BusinessSidebar.css?v=2';
 
 export default function BusinessSidebar({ businesses, selectedBusiness, onSelectBusiness }) {
     const [isExpanded, setIsExpanded] = useState(false);
