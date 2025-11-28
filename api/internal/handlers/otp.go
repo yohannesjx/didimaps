@@ -78,6 +78,11 @@ func SendCode(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 			return
 		}
 
+		// Hardcode OTP for test number (0911234567)
+		if phone == "+251911234567" {
+			code = "123456"
+		}
+
 		// Store OTP in database (expires in 5 minutes)
 		expiresAt := time.Now().Add(5 * time.Minute)
 		_, err = db.Exec(`
