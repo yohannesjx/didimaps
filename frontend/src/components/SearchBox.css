@@ -131,11 +131,20 @@
         left: 16px;
         right: 16px;
         top: 76px;
-        /* Below search box (16 + 48 + 12) */
+        /* Below search box */
         overflow-x: auto;
         white-space: nowrap;
-        padding-bottom: 4px;
+        padding-bottom: 12px;
+        /* Increased padding for shadows */
+        padding-left: 4px;
+        /* Padding for left shadow */
+        padding-right: 4px;
+        /* Padding for right shadow */
         -webkit-overflow-scrolling: touch;
+        margin-left: -4px;
+        /* Compensate for padding */
+        width: calc(100% + 8px);
+        /* Compensate for padding */
     }
 
     .category-pills-floating::-webkit-scrollbar {

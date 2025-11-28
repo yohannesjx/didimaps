@@ -76,10 +76,11 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             zoom: 12,
             // Initial padding: 360px left for desktop, 0 for mobile
             padding: { left: window.innerWidth > 768 ? 360 : 0 },
+            attributionControl: false, // Hide default attribution
         });
 
-        // Add navigation controls
-        map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+        // Add navigation controls (Zoom in/out) to bottom-right
+        map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
 
         // Add geolocate control
         map.current.addControl(
