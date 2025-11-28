@@ -93,6 +93,32 @@ export default function Map() {
           setError(`Map error: ${e.error?.message || 'Unknown error'}`);
         });
 
+        map.current.on('data', (e) => {
+          if (e.dataType === 'source') {
+            console.log('Source data loaded:', e.sourceId);
+          }
+        });
+
+        map.current.on('sourcedata', (e) => {
+          console.log('Source data event:', e.sourceId, e.isSourceLoaded);
+        });
+
+        map.current.on('render', () => {
+          console.log('Map render event');
+        });
+
+        // Force initial render
+        setTimeout(() => {
+          if (map.current) {
+            map.current.resize();
+            map.current.triggerRepaint();
+            const canvas = mapContainer.current?.querySelector('canvas');
+            console.log('Canvas element:', canvas);
+            console.log('Canvas style:', canvas?.style.cssText);
+            console.log('Canvas dimensions:', canvas?.width, canvas?.height);
+          }
+        }, 1000);
+
       } catch (err: any) {
         console.error('Error initializing map:', err);
         setError(err.message || 'Failed to initialize map');
@@ -104,8 +130,16 @@ export default function Map() {
 
   }, [lng, lat, zoom]);
 
+  useEffect(() => {
+    if (mapContainer.current) {
+      const rect = mapContainer.current.getBoundingClientRect();
+      console.log('Map container dimensions:', rect);
+      console.log('Map container element:', mapContainer.current);
+    }
+  }, []);
+
   return (
-    <div className="relative w-full h-full min-h-screen bg-gray-100">
+    <div className="fixed inset-0 w-screen h-screen bg-gray-100">
       {error && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-red-100 bg-opacity-90">
           <div className="p-4 bg-white rounded shadow-lg">
@@ -119,7 +153,11 @@ export default function Map() {
           <div className="text-white">Loading Map...</div>
         </div>
       )}
-      <div ref={mapContainer} className="absolute inset-0 bg-[#0c0c0c]" />
+      <div ref={mapContainer} className="absolute inset-0" />
+      {/* DEBUG: Visible test element - moved to bottom so it doesn't cover map */}
+      <div className="absolute bottom-0 right-0 z-[9999] bg-red-500 text-white p-2 text-sm">
+        Container: {mapContainer.current?.getBoundingClientRect().width}x{mapContainer.current?.getBoundingClientRect().height}
+      </div>
     </div>
   );
 }
