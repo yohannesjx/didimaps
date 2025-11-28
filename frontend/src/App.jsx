@@ -11,6 +11,8 @@ function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [user, setUser] = useState(null);
 
+  console.log('App rendering - components should be visible');
+
   return (
     <div className="app">
       <Map selectedBusiness={selectedBusiness} />
