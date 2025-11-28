@@ -4,7 +4,6 @@ import { useEffect, useRef, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useMapStore } from '@/lib/store';
-import { lightStyle, darkStyle } from '@/lib/map-styles';
 import { api } from '@/lib/api';
 import polyline from '@mapbox/polyline';
 
@@ -34,12 +33,24 @@ export default function Map() {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
+    console.log('Initializing map...');
+
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: theme === 'dark' ? darkStyle : lightStyle,
+      // Use server-provided TileJSON style to ensure tiles render correctly
+      style: 'https://maps.didi.et/api/tiles/json?tileset=addis',
       center: center,
       zoom: zoom,
       attributionControl: false,
+    });
+
+    // Surface MapLibre errors to the browser console
+    map.current.on('error', (e) => {
+      console.error('MapLibre error:', e.error || e);
+    });
+
+    map.current.on('load', () => {
+      console.log('Map style loaded');
     });
 
     // Add navigation controls
@@ -72,6 +83,7 @@ export default function Map() {
 
     // Initial fetch
     const c = map.current.getCenter();
+    console.log('Map initialized at center:', c.lat, c.lng, 'zoom:', map.current.getZoom());
     fetchNearbyBusinesses(c.lat, c.lng);
 
     return () => {
@@ -92,8 +104,8 @@ export default function Map() {
 
   // Update style when theme changes
   useEffect(() => {
+    // For now we use a single style URL; theme only affects overlays/markers.
     if (!map.current) return;
-    map.current.setStyle(theme === 'dark' ? darkStyle : lightStyle);
   }, [theme]);
 
   // Update markers when businesses change
