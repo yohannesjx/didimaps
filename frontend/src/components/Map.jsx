@@ -66,6 +66,24 @@ const getStyle = (mode) => {
                         'fill-extrusion-opacity': 0.2
                     },
                 },
+                {
+                    id: 'place-label',
+                    type: 'symbol',
+                    source: 'openmaptiles',
+                    'source-layer': 'place',
+                    minzoom: 10,
+                    layout: {
+                        'text-field': '{name:latin}',
+                        'text-font': ['Noto Sans Regular'],
+                        'text-size': 14,
+                        'text-anchor': 'center'
+                    },
+                    paint: {
+                        'text-color': '#ffffff',
+                        'text-halo-color': '#000000',
+                        'text-halo-width': 2
+                    }
+                },
             ]
         };
     }
@@ -136,6 +154,24 @@ const getStyle = (mode) => {
                     ],
                     'fill-extrusion-opacity': 0.8
                 },
+            },
+            {
+                id: 'place-label',
+                type: 'symbol',
+                source: 'openmaptiles',
+                'source-layer': 'place',
+                minzoom: 10,
+                layout: {
+                    'text-field': '{name:latin}',
+                    'text-font': ['Noto Sans Regular'],
+                    'text-size': 14,
+                    'text-anchor': 'center'
+                },
+                paint: {
+                    'text-color': isDark ? '#ffffff' : '#333333',
+                    'text-halo-color': isDark ? '#000000' : '#ffffff',
+                    'text-halo-width': 2
+                }
             },
         ],
     };
