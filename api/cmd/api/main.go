@@ -67,55 +67,59 @@ func main() {
 		r.Post("/verify-code", handlers.VerifyCode(database, cfg))
 	})
 
-	// Protected API routes
+	// API routes
 	r.Route("/api", func(r chi.Router) {
 		// Public tile endpoints (no auth required)
-		r.Route("/tiles", func(r chi.Router) {
-			r.Get("/{z}/{x}/{y}.pbf", handlers.GetTile(cfg))
-			r.Get("/json", handlers.GetTileJSON(cfg))
-			r.Get("/list", handlers.ListTilesets(cfg))
+		r.Group(func(public chi.Router) {
+			public.Route("/tiles", func(tr chi.Router) {
+				tr.Get("/{z}/{x}/{y}.pbf", handlers.GetTile(cfg))
+				tr.Get("/json", handlers.GetTileJSON(cfg))
+				tr.Get("/list", handlers.ListTilesets(cfg))
+			})
 		})
 
-		// Everything below this uses JWT auth
-		r.Use(middleware.JWTAuth(cfg.JWTSecret))
+		// Protected endpoints - apply JWT middleware within this group
+		r.Group(func(priv chi.Router) {
+			priv.Use(middleware.JWTAuth(cfg.JWTSecret))
 
-		// User profile
-		r.Get("/me", handlers.GetMe(database))
-		r.Put("/me", handlers.UpdateMe(database))
+			// User profile
+			priv.Get("/me", handlers.GetMe(database))
+			priv.Put("/me", handlers.UpdateMe(database))
 
-		// Routing endpoints
-		r.Get("/route", handlers.GetRoute(cfg))
-		r.Post("/match", handlers.MatchGPS(cfg))
+			// Routing endpoints
+			priv.Get("/route", handlers.GetRoute(cfg))
+			priv.Post("/match", handlers.MatchGPS(cfg))
 
-		// Geocoding endpoints
-		r.Get("/search", handlers.Search(cfg))
-		r.Get("/reverse", handlers.ReverseGeocode(cfg))
+			// Geocoding endpoints
+			priv.Get("/search", handlers.Search(cfg))
+			priv.Get("/reverse", handlers.ReverseGeocode(cfg))
 
-		// Categories
-		r.Get("/categories", handlers.GetCategories(database))
+			// Categories
+			priv.Get("/categories", handlers.GetCategories(database))
 
-		// Business endpoints
-		r.Route("/business", func(r chi.Router) {
-			r.Post("/", handlers.CreateBusiness(database))
-			r.Get("/nearby", handlers.GetNearbyBusinesses(database))
-			r.Get("/search", handlers.SearchBusinesses(database))
-			r.Get("/saved", handlers.GetSavedBusinesses(database))
-			r.Get("/{id}", handlers.GetBusiness(database))
-			r.Put("/{id}", handlers.UpdateBusiness(database))
-			r.Post("/{id}/save", handlers.SaveBusiness(database))
-			r.Delete("/{id}/save", handlers.UnsaveBusiness(database))
-			r.Post("/{id}/verify", handlers.VerifyBusiness(database))
-		})
+			// Business endpoints
+			priv.Route("/business", func(br chi.Router) {
+				br.Post("/", handlers.CreateBusiness(database))
+				br.Get("/nearby", handlers.GetNearbyBusinesses(database))
+				br.Get("/search", handlers.SearchBusinesses(database))
+				br.Get("/saved", handlers.GetSavedBusinesses(database))
+				br.Get("/{id}", handlers.GetBusiness(database))
+				br.Put("/{id}", handlers.UpdateBusiness(database))
+				br.Post("/{id}/save", handlers.SaveBusiness(database))
+				br.Delete("/{id}/save", handlers.UnsaveBusiness(database))
+				br.Post("/{id}/verify", handlers.VerifyBusiness(database))
+			})
 
-		// Posts endpoints
-		r.Route("/posts", func(r chi.Router) {
-			r.Post("/", handlers.CreatePost(database))
-			r.Get("/feed", handlers.GetFeed(database))
-			r.Get("/user/{userId}", handlers.GetUserPosts(database))
-			r.Get("/{id}", handlers.GetPost(database))
-			r.Delete("/{id}", handlers.DeletePost(database))
-			r.Post("/{id}/like", handlers.LikePost(database))
-			r.Delete("/{id}/like", handlers.UnlikePost(database))
+			// Posts endpoints
+			priv.Route("/posts", func(pr chi.Router) {
+				pr.Post("/", handlers.CreatePost(database))
+				pr.Get("/feed", handlers.GetFeed(database))
+				pr.Get("/user/{userId}", handlers.GetUserPosts(database))
+				pr.Get("/{id}", handlers.GetPost(database))
+				pr.Delete("/{id}", handlers.DeletePost(database))
+				pr.Post("/{id}/like", handlers.LikePost(database))
+				pr.Delete("/{id}/like", handlers.UnlikePost(database))
+			})
 		})
 	})
 
