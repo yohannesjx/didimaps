@@ -69,6 +69,14 @@ func main() {
 
 	// Protected API routes
 	r.Route("/api", func(r chi.Router) {
+		// Public tile endpoints (no auth required)
+		r.Route("/tiles", func(r chi.Router) {
+			r.Get("/{z}/{x}/{y}.pbf", handlers.GetTile(cfg))
+			r.Get("/json", handlers.GetTileJSON(cfg))
+			r.Get("/list", handlers.ListTilesets(cfg))
+		})
+
+		// Everything below this uses JWT auth
 		r.Use(middleware.JWTAuth(cfg.JWTSecret))
 
 		// User profile
@@ -82,11 +90,6 @@ func main() {
 		// Geocoding endpoints
 		r.Get("/search", handlers.Search(cfg))
 		r.Get("/reverse", handlers.ReverseGeocode(cfg))
-
-		// Tile endpoints
-		r.Get("/tiles/{z}/{x}/{y}.pbf", handlers.GetTile(cfg))
-		r.Get("/tiles/json", handlers.GetTileJSON(cfg))
-		r.Get("/tiles/list", handlers.ListTilesets(cfg))
 
 		// Categories
 		r.Get("/categories", handlers.GetCategories(database))
