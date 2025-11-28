@@ -28,7 +28,7 @@ func GetTile(cfg *config.Config) http.HandlerFunc {
 		// Default tileset name based on .mbtiles filename
 		tileset := r.URL.Query().Get("tileset")
 		if tileset == "" {
-			tileset = "osm" // default tileset name
+			tileset = "addis" // default tileset name (from mbtiles filename)
 		}
 
 		tileURL := fmt.Sprintf("%s/services/%s/tiles/%s/%s/%s.pbf", cfg.TileHost, tileset, z, x, y)
