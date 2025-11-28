@@ -3,9 +3,10 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './Map.css';
 
-export default function Map() {
+export default function Map({ selectedBusiness, businesses, onMarkerClick }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
+    const markers = useRef([]);
 
     useEffect(() => {
         if (map.current) return; // Initialize map only once
@@ -89,36 +90,6 @@ export default function Map() {
             'top-right'
         );
 
-        // Add business markers
-        const businesses = [
-            { id: 1, name: 'Yod Abyssinia', lat: 8.9806, lng: 38.7578 },
-            { id: 2, name: 'Tomoca Coffee', lat: 9.0320, lng: 38.7469 },
-            { id: 3, name: 'Castelli Restaurant', lat: 9.0330, lng: 38.7400 },
-        ];
-
-        businesses.forEach((business) => {
-            // Create marker element
-            const el = document.createElement('div');
-            el.className = 'business-marker';
-            el.innerHTML = '📍';
-            el.style.fontSize = '28px';
-            el.style.cursor = 'pointer';
-
-            // Create popup
-            const popup = new maplibregl.Popup({ offset: 25 })
-                .setHTML(`
-                    <div style="padding: 8px;">
-                        <strong style="font-size: 14px;">${business.name}</strong>
-                    </div>
-                `);
-
-            // Add marker with popup
-            new maplibregl.Marker(el)
-                .setLngLat([business.lng, business.lat])
-                .setPopup(popup)
-                .addTo(map.current);
-        });
-
         // Cleanup
         return () => {
             if (map.current) {
@@ -127,6 +98,63 @@ export default function Map() {
             }
         };
     }, []);
+
+    // Update markers when businesses change
+    useEffect(() => {
+        if (!map.current || !businesses) return;
+
+        // Clear existing markers
+        markers.current.forEach(m => m.remove());
+        markers.current = [];
+
+        // Add new markers
+        businesses.forEach((business) => {
+            const el = document.createElement('div');
+            el.className = 'business-marker';
+            el.innerHTML = '📍';
+            el.style.fontSize = '28px';
+            el.style.cursor = 'pointer';
+            el.style.transition = 'transform 0.2s';
+
+            el.addEventListener('mouseenter', () => {
+                el.style.transform = 'scale(1.2)';
+            });
+
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'scale(1)';
+            });
+
+            const popup = new maplibregl.Popup({ offset: 25 })
+                .setHTML(`
+          <div style="padding: 8px;">
+            <strong style="font-size: 14px;">${business.name}</strong><br/>
+            <span style="font-size: 12px; color: #666;">${business.category}</span>
+          </div>
+        `);
+
+            const marker = new maplibregl.Marker(el)
+                .setLngLat([business.lng, business.lat])
+                .setPopup(popup)
+                .addTo(map.current);
+
+            el.addEventListener('click', () => {
+                onMarkerClick(business);
+            });
+
+            markers.current.push(marker);
+        });
+    }, [businesses, onMarkerClick]);
+
+    // Fly to selected business
+    useEffect(() => {
+        if (!map.current || !selectedBusiness) return;
+
+        map.current.flyTo({
+            center: [selectedBusiness.lng, selectedBusiness.lat],
+            zoom: 15,
+            duration: 1500,
+        });
+    }, [selectedBusiness]);
 
     return <div ref={mapContainer} className="map-container" />;
 }

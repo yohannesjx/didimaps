@@ -117,3 +117,34 @@
     color: #999;
     font-size: 12px;
 }
+
+.business-card.selected {
+    background: #f0f8ff;
+    border-left: 4px solid #4285f4;
+}
+
+.business-phone {
+    margin-top: 8px;
+}
+
+.business-phone a {
+    color: #4285f4;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.business-phone a:hover {
+    text-decoration: underline;
+}
+
+.no-results {
+    padding: 60px 20px;
+    text-align: center;
+    color: #999;
+}
+
+.no-results p {
+    margin: 16px 0 0 0;
+    font-size: 16px;
+}

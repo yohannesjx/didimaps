@@ -1,10 +1,13 @@
 import './BusinessCard.css';
 
-export default function BusinessCard({ business, onClick }) {
+export default function BusinessCard({ business, isSelected, onClick }) {
     const defaultImage = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400';
 
     return (
-        <div className="business-card" onClick={onClick}>
+        <div
+            className={`business-card ${isSelected ? 'selected' : ''}`}
+            onClick={onClick}
+        >
             <div className="business-card-header">
                 <div className="business-info">
                     <div className="business-name-row">
@@ -22,6 +25,11 @@ export default function BusinessCard({ business, onClick }) {
                     <div className="business-status">{business.status || 'Hours not available'}</div>
                     <div className="business-category">{business.category || 'Business'}</div>
                     <div className="business-address">{business.address || 'Addis Ababa'}</div>
+                    {business.phone && (
+                        <div className="business-phone">
+                            <a href={`tel:${business.phone}`}>📞 {business.phone}</a>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -32,7 +40,6 @@ export default function BusinessCard({ business, onClick }) {
                         alt={business.name}
                         className="business-image"
                     />
-                    <button className="menu-button">📋 Menu</button>
                 </div>
             )}
 
@@ -40,11 +47,6 @@ export default function BusinessCard({ business, onClick }) {
                 {business.description && (
                     <div className="business-description">
                         {business.description}
-                    </div>
-                )}
-                {business.hours && (
-                    <div className="business-hours">
-                        {business.hours}
                     </div>
                 )}
             </div>
