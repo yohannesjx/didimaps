@@ -16,11 +16,12 @@
 
 .search-input-container {
     background: white;
-    border-radius: 12px;
+    border-radius: 24px;
+    /* Pill shape */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
-    padding: 0 16px;
+    padding: 0 8px 0 16px;
     height: 48px;
     width: 360px;
     transition: box-shadow 0.2s;
@@ -32,7 +33,8 @@
 
 .search-icon {
     font-size: 18px;
-    color: #777;
+    color: #ea4335;
+    /* Google Red */
     margin-right: 12px;
 }
 
@@ -47,20 +49,34 @@
 }
 
 .search-input-main::placeholder {
-    color: #777;
+    color: #70757a;
 }
 
+.voice-search,
 .clear-search {
     background: none;
     border: none;
     font-size: 20px;
-    color: #999;
+    color: #5f6368;
     cursor: pointer;
-    padding: 4px;
+    padding: 8px;
+    margin-right: 4px;
 }
 
-.clear-search:hover {
-    color: #333;
+.user-profile-circle {
+    width: 32px;
+    height: 32px;
+    background: #8e24aa;
+    /* Purple avatar */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 4px;
 }
 
 /* Category Pills */

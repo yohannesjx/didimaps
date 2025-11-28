@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './SearchBox.css?v=2';
 
-export default function SearchBox({ query, onSearch }) {
+export default function SearchBox({ query, onSearch, onProfileClick }) {
     const [activeCategory, setActiveCategory] = useState('all');
 
     const categories = [
@@ -21,15 +21,18 @@ export default function SearchBox({ query, onSearch }) {
                     <input
                         type="text"
                         className="search-input-main"
-                        placeholder="Search places..."
+                        placeholder="Search here"
                         value={query}
                         onChange={(e) => onSearch(e.target.value)}
                     />
                     {query ? (
                         <button className="clear-search" onClick={() => onSearch('')}>✕</button>
                     ) : (
-                        <button className="clear-search">🔍</button>
+                        <button className="voice-search">🎤</button>
                     )}
+                    <div className="user-profile-circle" onClick={onProfileClick}>
+                        <span>G</span>
+                    </div>
                 </div>
             </div>
 
