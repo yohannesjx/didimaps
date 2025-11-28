@@ -1,7 +1,8 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
-// Default to API tiles path (no auth); can be overridden via NEXT_PUBLIC_TILE_URL
-const TILE_URL = process.env.NEXT_PUBLIC_TILE_URL || 'https://maps.didi.et/api/tiles/{z}/{x}/{y}.pbf';
+// Always use the Go API tile proxy (public, no auth) for vector tiles.
+// This avoids any legacy /tiles/services/osm paths leaking into the frontend.
+const TILE_URL = 'https://maps.didi.et/api/tiles/{z}/{x}/{y}.pbf';
 const GLYPHS_URL = 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf';
 
 export const lightStyle: StyleSpecification = {

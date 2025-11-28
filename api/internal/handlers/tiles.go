@@ -40,23 +40,24 @@ func GetTile(cfg *config.Config) http.HandlerFunc {
 		}
 		defer resp.Body.Close()
 
-		if resp.StatusCode == http.StatusNotFound {
-			w.WriteHeader(http.StatusNotFound)
-			return
+		// Propagate status code and relevant headers from mbtileserver.
+		// Do NOT force Content-Encoding; mismatched encoding causes
+		// ERR_CONTENT_DECODING_FAILED in browsers.
+		for k, vv := range resp.Header {
+			// Skip hop-by-hop headers
+			if k == "Connection" || k == "Keep-Alive" || k == "Proxy-Authenticate" ||
+				k == "Proxy-Authorization" || k == "Te" || k == "Trailers" ||
+				k == "Transfer-Encoding" || k == "Upgrade" {
+				continue
+			}
+			for _, v := range vv {
+				w.Header().Add(k, v)
+			}
 		}
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			jsonError(w, "failed to read tile", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/x-protobuf")
-		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Cache-Control", "public, max-age=86400")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(resp.StatusCode)
-		w.Write(body)
+		io.Copy(w, resp.Body)
 	}
 }
 
