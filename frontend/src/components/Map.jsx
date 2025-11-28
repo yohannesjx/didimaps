@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
-import 'maplibregl/dist/maplibre-gl.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import './Map.css';
 import { decodePolyline } from '../utils/polyline';
 
