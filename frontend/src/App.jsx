@@ -100,6 +100,17 @@ function App() {
     }
   }, [selectedBusiness]);
 
+  const handleMarkerClick = (business) => {
+    if (isPickingLocation) return;
+    setSelectedBusiness(business);
+    setIsSidebarVisible(true);
+    setIsProfileOpen(false);
+  };
+
+  const handleMapMove = (center) => {
+    setMapCenter(center);
+  };
+
   return (
     <div className="app-container">
       {/* Location Picker Overlay */}
@@ -181,18 +192,14 @@ function App() {
       </div>
 
       <Map
-        selectedBusiness={selectedBusiness}
+        key="map-clean-v1"
         businesses={businesses}
-        onMarkerClick={(business) => {
-          if (isPickingLocation) return;
-          setSelectedBusiness(business);
-          setIsSidebarVisible(true);
-          setIsProfileOpen(false);
-        }}
+        selectedBusiness={selectedBusiness}
+        onMarkerClick={handleMarkerClick}
         directionsDestination={directionsDestination}
         userLocation={userLocation}
-        isSidebarVisible={isSidebarVisible || isProfileOpen}
-        onMapMove={setMapCenter}
+        isSidebarVisible={isSidebarVisible}
+        onMapMove={handleMapMove}
       />
 
       <LoginModal
