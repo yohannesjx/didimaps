@@ -73,3 +73,53 @@
         opacity: 0;
     }
 }
+
+/* Map Controls */
+.map-controls-group {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.map-control-btn {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.map-control-btn:hover {
+    background-color: #f8f9fa;
+}
+
+.locate-btn {
+    position: absolute;
+    bottom: 110px;
+    right: 10px;
+    z-index: 10;
+    width: 29px;
+    height: 29px;
+    border-radius: 4px;
+    font-size: 16px;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .map-controls-group {
+        top: 160px;
+        /* Move down below search/pills on mobile */
+    }
+}

@@ -410,14 +410,13 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             <div ref={mapContainer} className="map-container" />
 
             {/* Top Right Controls */}
-            <div style={{ position: 'absolute', top: '20px', right: '10px', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className="map-controls-group">
                 {/* Layer Switcher */}
                 <div style={{ position: 'relative' }}>
                     <button
                         className="map-control-btn"
                         onClick={() => setShowLayerMenu(!showLayerMenu)}
                         title="Layers"
-                        style={{ width: '40px', height: '40px', background: 'white', border: 'none', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '20px' }}
                     >
                         🗺️
                     </button>
@@ -439,7 +438,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
                     className="map-control-btn"
                     onClick={toggle3D}
                     title="Toggle 2D/3D"
-                    style={{ width: '40px', height: '40px', background: 'white', border: 'none', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
+                    style={{ fontSize: '14px', fontWeight: 'bold' }}
                 >
                     {is3D ? '2D' : '3D'}
                 </button>
@@ -447,25 +446,8 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
 
             {/* Locate Me Button */}
             <button
-                className="map-control-btn"
+                className="map-control-btn locate-btn"
                 onClick={handleLocateMe}
-                style={{
-                    position: 'absolute',
-                    bottom: '110px', // Positioned above zoom controls
-                    right: '10px',
-                    zIndex: 10,
-                    background: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    width: '29px',
-                    height: '29px',
-                    boxShadow: '0 0 0 2px rgba(0,0,0,0.1)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '16px'
-                }}
                 title="Locate Me"
             >
                 🎯
