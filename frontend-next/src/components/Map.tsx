@@ -48,7 +48,23 @@ export default function Map() {
 
         map.current = new maplibregl.Map({
           container: mapContainer.current!,
-          style: style, // Pass the modified style object
+          style: {
+            version: 8,
+            sources: {
+              'osm': {
+                type: 'raster',
+                tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tileSize: 256,
+              }
+            },
+            layers: [
+              {
+                id: 'osm',
+                type: 'raster',
+                source: 'osm',
+              }
+            ]
+          },
           center: [lng, lat],
           zoom: zoom,
           attributionControl: false,
