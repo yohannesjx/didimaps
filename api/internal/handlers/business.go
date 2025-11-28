@@ -147,7 +147,7 @@ func CreateBusiness(db *sql.DB) http.HandlerFunc {
 			) VALUES (
 				$1, $2, $3, $4, $5,
 				$6, $7, $8, $9,
-				ST_SetSRID(ST_MakePoint($10, $11), 4326), $12, $13, 'pending'
+				ST_SetSRID(ST_MakePoint($10, $11), 4326), $12, $13, 'verified'
 			) RETURNING id
 		`, userID, req.Name, req.NameAm, req.Description, req.DescriptionAm,
 			req.CategoryID, req.Phone, req.Email, req.Website,
