@@ -173,6 +173,25 @@ const getStyle = (mode) => {
                     'text-halo-width': 2
                 }
             },
+            {
+                id: 'poi-label',
+                type: 'symbol',
+                source: 'openmaptiles',
+                'source-layer': 'poi',
+                minzoom: 14,
+                layout: {
+                    'text-field': '{name:latin}',
+                    'text-font': ['Noto Sans Regular'],
+                    'text-size': 11,
+                    'text-anchor': 'top',
+                    'text-offset': [0, 0.5]
+                },
+                paint: {
+                    'text-color': isDark ? '#999999' : '#555555',
+                    'text-halo-color': isDark ? '#000000' : '#ffffff',
+                    'text-halo-width': 1
+                }
+            },
         ],
     };
 };
@@ -310,11 +329,20 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
 
             // Use custom icon based on category
             const categoryName = business.category?.name || business.category;
-            el.innerHTML = getCategoryIcon(categoryName);
+            const icon = getCategoryIcon(categoryName);
 
-            el.style.fontSize = '28px';
+            el.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div style="font-size:28px;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.3));">${icon}</div>
+                    <div style="font-size:11px;font-weight:bold;color:${styleMode === 'dark' ? 'white' : 'black'};text-shadow:0 0 2px ${styleMode === 'dark' ? 'black' : 'white'};margin-top:-5px;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;">
+                        ${business.name}
+                    </div>
+                </div>
+            `;
+
             el.style.cursor = 'pointer';
             el.style.transition = 'transform 0.2s';
+            el.style.zIndex = '1'; // Ensure text is above other things
 
 
             el.addEventListener('mouseenter', () => {
