@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Map from './components/Map';
 import SearchBox from './components/SearchBox';
 import BusinessSidebar from './components/BusinessSidebar';

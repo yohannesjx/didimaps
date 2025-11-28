@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './Map.css';
 
-export default function Map({ selectedBusiness, businesses, onMarkerClick }) {
+export default function Map({ selectedBusiness, businesses, onMarkerClick, directionsDestination, userLocation }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markers = useRef([]);
