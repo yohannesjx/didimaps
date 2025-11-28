@@ -55,16 +55,34 @@ function App() {
   const [viewMode, setViewMode] = useState('search'); // search, directions
   const [directionsDestination, setDirectionsDestination] = useState(null);
   const [userLocation, setUserLocation] = useState({ lat: 9.0000, lng: 38.7500 }); // Default center
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Hidden by default
 
   useEffect(() => {
     // Listen for directions requests from cards
     const handleDirectionsRequest = (e) => {
       setDirectionsDestination(e.detail);
       setViewMode('directions');
+      setIsSidebarVisible(true);
     };
     window.addEventListener('requestDirections', handleDirectionsRequest);
     return () => window.removeEventListener('requestDirections', handleDirectionsRequest);
   }, []);
+
+  // Show sidebar when search query exists
+  useEffect(() => {
+    if (searchQuery) {
+      setIsSidebarVisible(true);
+    } else if (!selectedBusiness) {
+      setIsSidebarVisible(false);
+    }
+  }, [searchQuery, selectedBusiness]);
+
+  // Show sidebar when business is selected
+  useEffect(() => {
+    if (selectedBusiness) {
+      setIsSidebarVisible(true);
+    }
+  }, [selectedBusiness]);
 
   const filteredBusinesses = businesses.filter(b =>
     b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -76,22 +94,35 @@ function App() {
       <Map
         selectedBusiness={selectedBusiness}
         businesses={businesses}
-        onMarkerClick={setSelectedBusiness}
+        onMarkerClick={(business) => {
+          setSelectedBusiness(business);
+          setIsSidebarVisible(true);
+        }}
         directionsDestination={viewMode === 'directions' ? directionsDestination : null}
         userLocation={userLocation}
+        isSidebarVisible={isSidebarVisible}
       />
 
       {viewMode === 'search' ? (
         <>
           <SearchBox
             query={searchQuery}
-            onSearch={setSearchQuery}
+            onSearch={(q) => {
+              setSearchQuery(q);
+              if (q) setIsSidebarVisible(true);
+            }}
           />
 
           <BusinessSidebar
             businesses={filteredBusinesses}
             selectedBusiness={selectedBusiness}
             onSelectBusiness={setSelectedBusiness}
+            isVisible={isSidebarVisible}
+            onClose={() => {
+              setIsSidebarVisible(false);
+              setSelectedBusiness(null);
+              setSearchQuery('');
+            }}
           />
         </>
       ) : (

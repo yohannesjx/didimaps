@@ -97,12 +97,21 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             if (map.current) {
                 const isDesktop = window.innerWidth > 768;
                 map.current.easeTo({
-                    padding: { left: isDesktop ? 360 : 0 },
+                    padding: { left: (isDesktop && isSidebarVisible) ? 360 : 0 },
                     duration: 300
                 });
             }
         };
         window.addEventListener('resize', handleResize);
+
+        // Update padding when sidebar visibility changes
+        if (map.current) {
+            const isDesktop = window.innerWidth > 768;
+            map.current.easeTo({
+                padding: { left: (isDesktop && isSidebarVisible) ? 360 : 0 },
+                duration: 300
+            });
+        }
 
         // Cleanup
         return () => {
@@ -113,6 +122,17 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             }
         };
     }, []);
+
+    // Update padding when sidebar visibility changes
+    useEffect(() => {
+        if (map.current) {
+            const isDesktop = window.innerWidth > 768;
+            map.current.easeTo({
+                padding: { left: (isDesktop && isSidebarVisible) ? 360 : 0 },
+                duration: 300
+            });
+        }
+    }, [isSidebarVisible]);
 
     // Update markers when businesses change
     useEffect(() => {
