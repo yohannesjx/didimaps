@@ -1,13 +1,23 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export default function Map() {
   const mapContainer = useRef<HTMLDivElement>(null);
+  const [status, setStatus] = useState('Initializing...');
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current) {
+      setStatus('Error: No container element');
+      return;
+    }
+
+    // WebGL support check
+    if (!maplibregl.supported()) {
+      setStatus('Error: WebGL not supported in this browser');
+      return;
+    }
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
@@ -17,27 +27,45 @@ export default function Map() {
       attributionControl: false
     });
 
-    // Preserve hand cursor behavior
-    map.on('load', () => {
-      const canvas = map.getCanvasContainer();
-      canvas.style.cursor = 'pointer'; // Force hand cursor
+    map.on('load', () => setStatus('Map loaded successfully'));
+    map.on('error', (e) => setStatus(`Error: ${e.error?.message || e.message || 'Unknown map error'}`));
+
+    // Debug tile loading
+    map.on('sourcedata', (e) => {
+      if (e.sourceId === 'osm') {
+        setStatus(`Loading tiles: ${e.sourceId} (${e.tile?.tileID?.toString() || 'unknown tile'})`);
+      }
     });
 
     return () => map.remove();
   }, []);
 
   return (
-    <div 
-      ref={mapContainer} 
-      style={{
+    <div style={{ position: 'relative', height: '100%' }}>
+      <div 
+        ref={mapContainer} 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: '#f0f0f0',
+          cursor: 'pointer'
+        }}
+      />
+      <div style={{
         position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'red',
-        cursor: 'pointer' // Ensures hand cursor even during load
-      }}
-    />
+        top: 10,
+        left: 10,
+        background: 'white',
+        padding: '8px',
+        borderRadius: '4px',
+        zIndex: 1,
+        fontFamily: 'monospace'
+      }}>
+        {status}
+      </div>
+    </div>
   );
 }
