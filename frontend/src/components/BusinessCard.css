@@ -1,0 +1,119 @@
+.business-card {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.business-card:hover {
+    background: #f9f9f9;
+}
+
+.business-card-header {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.business-info {
+    flex: 1;
+}
+
+.business-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.business-badge {
+    font-size: 14px;
+}
+
+.business-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+}
+
+.business-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.rating-stars {
+    color: #ffa500;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.rating-count {
+    color: #666;
+    font-size: 13px;
+}
+
+.business-status {
+    color: #d32f2f;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.business-category {
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.business-address {
+    color: #999;
+    font-size: 12px;
+}
+
+.business-images {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.business-image {
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.menu-button {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.menu-button:hover {
+    background: #f5f5f5;
+}
+
+.business-footer {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.business-description {
+    margin-bottom: 8px;
+}
+
+.business-hours {
+    color: #999;
+    font-size: 12px;
+}
