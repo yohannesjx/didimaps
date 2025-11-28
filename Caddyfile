@@ -15,6 +15,7 @@ maps.didi.et {
     # Tile server
     handle /tiles/* {
         uri strip_prefix /tiles
+        rewrite * /services/addis/tiles{uri}
         reverse_proxy tileserver:8000
     }
 
