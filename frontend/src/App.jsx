@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Map from './components/Map';
 import SearchBox from './components/SearchBox';
 import BusinessSidebar from './components/BusinessSidebar';
+import DirectionsSidebar from './components/DirectionsSidebar';
 import './App.css';
 
 function App() {
@@ -51,6 +52,20 @@ function App() {
     },
   ]);
 
+  const [viewMode, setViewMode] = useState('search'); // search, directions
+  const [directionsDestination, setDirectionsDestination] = useState(null);
+  const [userLocation, setUserLocation] = useState({ lat: 9.0000, lng: 38.7500 }); // Default center
+
+  useEffect(() => {
+    // Listen for directions requests from cards
+    const handleDirectionsRequest = (e) => {
+      setDirectionsDestination(e.detail);
+      setViewMode('directions');
+    };
+    window.addEventListener('requestDirections', handleDirectionsRequest);
+    return () => window.removeEventListener('requestDirections', handleDirectionsRequest);
+  }, []);
+
   const filteredBusinesses = businesses.filter(b =>
     b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     b.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -62,18 +77,31 @@ function App() {
         selectedBusiness={selectedBusiness}
         businesses={businesses}
         onMarkerClick={setSelectedBusiness}
+        directionsDestination={viewMode === 'directions' ? directionsDestination : null}
+        userLocation={userLocation}
       />
 
-      <SearchBox
-        query={searchQuery}
-        onSearch={setSearchQuery}
-      />
+      {viewMode === 'search' ? (
+        <>
+          <SearchBox
+            query={searchQuery}
+            onSearch={setSearchQuery}
+          />
 
-      <BusinessSidebar
-        businesses={filteredBusinesses}
-        selectedBusiness={selectedBusiness}
-        onSelectBusiness={setSelectedBusiness}
-      />
+          <BusinessSidebar
+            businesses={filteredBusinesses}
+            selectedBusiness={selectedBusiness}
+            onSelectBusiness={setSelectedBusiness}
+          />
+        </>
+      ) : (
+        <DirectionsSidebar
+          origin={userLocation}
+          destination={directionsDestination}
+          onBack={() => setViewMode('search')}
+          onStartNavigation={() => alert('Navigation started!')}
+        />
+      )}
     </div>
   );
 }

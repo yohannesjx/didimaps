@@ -49,6 +49,18 @@ export default function BusinessCard({ business, isSelected, onClick }) {
                         {business.description}
                     </div>
                 )}
+                <button
+                    className="directions-btn-card"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onClick(); // Select card first
+                        // Trigger directions event (handled by parent)
+                        const event = new CustomEvent('requestDirections', { detail: business });
+                        window.dispatchEvent(event);
+                    }}
+                >
+                    🔷 Directions
+                </button>
             </div>
         </div>
     );

@@ -148,3 +148,20 @@
     margin: 16px 0 0 0;
     font-size: 16px;
 }
+.directions-btn-card {
+  width: 100%;
+  margin-top: 12px;
+  background: #e8f0fe;
+  color: #1a73e8;
+  border: none;
+  padding: 8px;
+  border-radius: 18px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.directions-btn-card:hover {
+  background: #d2e3fc;
+}

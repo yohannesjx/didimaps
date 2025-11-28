@@ -156,5 +156,62 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick }) {
         });
     }, [selectedBusiness]);
 
+    // Draw route when directions destination is set
+    useEffect(() => {
+        if (!map.current) return;
+
+        // Remove existing route if any
+        if (map.current.getSource('route')) {
+            map.current.removeLayer('route');
+            map.current.removeSource('route');
+        }
+
+        if (directionsDestination && userLocation) {
+            // Create a simple straight line for now (mock route)
+            // In a real app, this would fetch geometry from a routing API (OSRM/Valhalla)
+            const routeGeoJSON = {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [
+                        [userLocation.lng, userLocation.lat],
+                        [directionsDestination.lng, directionsDestination.lat]
+                    ]
+                }
+            };
+
+            map.current.addSource('route', {
+                type: 'geojson',
+                data: routeGeoJSON
+            });
+
+            map.current.addLayer({
+                id: 'route',
+                type: 'line',
+                source: 'route',
+                layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                paint: {
+                    'line-color': '#4285f4',
+                    'line-width': 6,
+                    'line-opacity': 0.8
+                }
+            });
+
+            // Fit bounds to show route
+            const bounds = new maplibregl.LngLatBounds()
+                .extend([userLocation.lng, userLocation.lat])
+                .extend([directionsDestination.lng, directionsDestination.lat]);
+
+            map.current.fitBounds(bounds, {
+                padding: 50,
+                maxZoom: 15
+            });
+        }
+    }, [directionsDestination, userLocation]);
+
     return <div ref={mapContainer} className="map-container" />;
 }
