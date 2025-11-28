@@ -91,7 +91,7 @@ services:
     container_name: frontend-next
     environment:
       - NEXT_PUBLIC_API_URL=https://maps.didi.et
-      - NEXT_PUBLIC_TILE_URL=https://maps.didi.et/api/tiles/{z}/{x}/{y}.pbf
+      - NEXT_PUBLIC_TILE_URL=https://maps.didi.et/tiles/{z}/{x}/{y}.pbf
     expose:
       - "3000"
     depends_on:
