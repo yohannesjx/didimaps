@@ -4,7 +4,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export default function Map() {
-  const mapContainer = useRef(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!mapContainer.current) {
@@ -14,7 +14,7 @@ export default function Map() {
 
     console.log('FINAL DEBUG - Container dimensions:', {
       width: mapContainer.current.offsetWidth,
-      height: mapContainer.current.offsetHeight
+      height: mapContainer.current.offsetHeight 
     });
 
     const map = new maplibregl.Map({
@@ -30,12 +30,17 @@ export default function Map() {
     return () => map.remove();
   }, []);
 
-  return <div ref={mapContainer} style={{
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'red'
-  }} />;
+  return (
+    <div 
+      ref={mapContainer} 
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'red'
+      }}
+    />
+  );
 }
