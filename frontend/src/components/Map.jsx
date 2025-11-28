@@ -74,7 +74,8 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             },
             center: [38.7578, 8.9806], // Addis Ababa
             zoom: 12,
-            padding: { left: window.innerWidth > 768 ? 360 : 0 }, // Responsive padding
+            // Initial padding: 360px left for desktop, 0 for mobile
+            padding: { left: window.innerWidth > 768 ? 360 : 0 },
         });
 
         // Add navigation controls
@@ -91,11 +92,12 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             'top-right'
         );
 
-        // Handle window resize to adjust padding
+        // Handle window resize to adjust padding dynamically
         const handleResize = () => {
             if (map.current) {
+                const isDesktop = window.innerWidth > 768;
                 map.current.easeTo({
-                    padding: { left: window.innerWidth > 768 ? 360 : 0 },
+                    padding: { left: isDesktop ? 360 : 0 },
                     duration: 300
                 });
             }

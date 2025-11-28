@@ -1,14 +1,17 @@
+/* =========================================
+   DESKTOP STYLES (Default)
+   ========================================= */
+
 /* Floating Search Box */
 .search-box-floating {
     position: absolute;
     top: 16px;
     left: 380px;
-    /* Desktop: Sidebar width + padding */
+    /* Sidebar width (360) + 20px padding */
     z-index: 1000;
     display: flex;
     gap: 12px;
     align-items: center;
-    transition: all 0.3s ease;
 }
 
 .search-input-container {
@@ -20,7 +23,7 @@
     padding: 0 16px;
     height: 48px;
     width: 360px;
-    transition: box-shadow 0.2s, width 0.3s ease;
+    transition: box-shadow 0.2s;
 }
 
 .search-input-container:hover {
@@ -65,12 +68,11 @@
     position: absolute;
     top: 16px;
     left: 760px;
-    /* Desktop: Sidebar + Search + Padding */
+    /* Sidebar (360) + Search (360) + Padding (40) */
     z-index: 1000;
     display: flex;
     gap: 8px;
     align-items: center;
-    transition: all 0.3s ease;
 }
 
 .category-pill {
@@ -105,29 +107,34 @@
     font-size: 16px;
 }
 
-/* Mobile Responsive Styles */
+/* =========================================
+   MOBILE STYLES
+   ========================================= */
 @media (max-width: 768px) {
+
+    /* Search Box: Top Full Width */
     .search-box-floating {
         left: 16px;
         right: 16px;
         top: 16px;
         width: auto;
+        /* Override fixed width */
     }
 
     .search-input-container {
         width: 100%;
-        /* Full width on mobile */
+        /* Full width */
     }
 
+    /* Category Pills: Scrollable Row Below Search */
     .category-pills-floating {
         left: 16px;
         right: 16px;
-        top: 72px;
-        /* Below search box */
+        top: 76px;
+        /* Below search box (16 + 48 + 12) */
         overflow-x: auto;
         white-space: nowrap;
         padding-bottom: 4px;
-        /* Hide scrollbar visually */
         -webkit-overflow-scrolling: touch;
     }
 
