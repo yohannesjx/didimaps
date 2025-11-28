@@ -82,6 +82,7 @@ func main() {
 			// Public categories and nearby business search for anonymous map usage
 			public.Get("/categories", handlers.GetCategories(database))
 			public.Get("/business/nearby", handlers.GetNearbyBusinesses(database))
+			public.Get("/business/search", handlers.SearchBusinesses(database, cfg))
 		})
 
 		// Protected endpoints - apply JWT middleware within this group
@@ -104,7 +105,6 @@ func main() {
 			// Business endpoints (authenticated operations)
 			priv.Route("/business", func(br chi.Router) {
 				br.Post("/", handlers.CreateBusiness(database))
-				br.Get("/search", handlers.SearchBusinesses(database, cfg))
 				br.Get("/saved", handlers.GetSavedBusinesses(database))
 				br.Get("/{id}", handlers.GetBusiness(database))
 				br.Put("/{id}", handlers.UpdateBusiness(database))
