@@ -3,10 +3,10 @@ services:
     image: ghcr.io/consbio/mbtileserver:latest
     container_name: tileserver
     volumes:
-      - ./data/tiles:/tiles
+      - ./data/tiles:/tilesets
     ports:
-      - "8080:8080"
-    command: ["mbtileserver", "--dir", "/tiles", "--no-cors"]
+      - "8080:8000"
+    command: ["-d", "/tilesets", "-p", "8000"]
     restart: unless-stopped
 
   osrm:
@@ -23,12 +23,14 @@ services:
     image: mediagis/nominatim:4.4
     container_name: nominatim
     environment:
-      - NOMINATIM_PBF_URL=https://download.geofabrik.de/europe/monaco-latest.osm.pbf
-      - NOMINATIM_IMPORT_WIKIPEDIA=false
+      - PBF_URL=https://download.geofabrik.de/europe/monaco-latest.osm.pbf
+      - IMPORT_WIKIPEDIA=false
+      - NOMINATIM_PASSWORD=nominatim
     volumes:
-      - ./data/nominatim:/var/lib/postgresql/14/main
+      - nominatim-data:/var/lib/postgresql/14/main
     ports:
-      - "7070:7070"
+      - "8081:8080"
+    shm_size: 1g
     restart: unless-stopped
 
   api:
@@ -36,8 +38,8 @@ services:
     container_name: api
     environment:
       - OSRM_HOST=http://osrm:5000
-      - GEOCODER_HOST=http://nominatim:7070
-      - TILE_HOST=http://tileserver:8080
+      - GEOCODER_HOST=http://nominatim:8080
+      - TILE_HOST=http://tileserver:8000
       - JWT_SECRET=change-this-in-production
       - RATE_LIMIT=100
     ports:
@@ -47,3 +49,6 @@ services:
       - nominatim
       - tileserver
     restart: unless-stopped
+
+volumes:
+  nominatim-data:
