@@ -31,7 +31,7 @@ services:
       - ./data/osrm:/data
     expose:
       - "5000"
-    command: ["osrm-routed", "--algorithm", "mld", "/data/monaco.osrm"]
+    command: ["osrm-routed", "--algorithm", "mld", "/data/addis-ababa.osrm"]
     restart: unless-stopped
 
   nominatim:
