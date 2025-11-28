@@ -103,7 +103,7 @@ export default function Map() {
           <div className="text-white">Loading Map...</div>
         </div>
       )}
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainer} className="absolute inset-0 bg-[#0c0c0c]" />
     </div>
   );
 }
