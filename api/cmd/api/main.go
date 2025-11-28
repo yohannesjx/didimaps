@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"maps/api/internal/config"
+	"maps/api/internal/db"
 	"maps/api/internal/handlers"
 	"maps/api/internal/middleware"
 
@@ -25,6 +26,18 @@ func main() {
 
 	// Load configuration
 	cfg := config.Load()
+
+	// Connect to database
+	database, err := db.Connect(cfg)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to connect to database")
+	}
+	defer database.Close()
+
+	// Run migrations
+	if err := db.RunMigrations(database); err != nil {
+		log.Fatal().Err(err).Msg("Failed to run migrations")
+	}
 
 	// Initialize router
 	r := chi.NewRouter()
@@ -49,11 +62,18 @@ func main() {
 		r.Post("/login", handlers.Login(cfg))
 		r.Post("/refresh", handlers.RefreshToken(cfg))
 		r.Post("/logout", handlers.Logout)
+		// Phone OTP auth
+		r.Post("/send-code", handlers.SendCode(database, cfg))
+		r.Post("/verify-code", handlers.VerifyCode(database, cfg))
 	})
 
 	// Protected API routes
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.JWTAuth(cfg.JWTSecret))
+
+		// User profile
+		r.Get("/me", handlers.GetMe(database))
+		r.Put("/me", handlers.UpdateMe(database))
 
 		// Routing endpoints
 		r.Get("/route", handlers.GetRoute(cfg))
@@ -67,6 +87,33 @@ func main() {
 		r.Get("/tiles/{z}/{x}/{y}.pbf", handlers.GetTile(cfg))
 		r.Get("/tiles/json", handlers.GetTileJSON(cfg))
 		r.Get("/tiles/list", handlers.ListTilesets(cfg))
+
+		// Categories
+		r.Get("/categories", handlers.GetCategories(database))
+
+		// Business endpoints
+		r.Route("/business", func(r chi.Router) {
+			r.Post("/", handlers.CreateBusiness(database))
+			r.Get("/nearby", handlers.GetNearbyBusinesses(database))
+			r.Get("/search", handlers.SearchBusinesses(database))
+			r.Get("/saved", handlers.GetSavedBusinesses(database))
+			r.Get("/{id}", handlers.GetBusiness(database))
+			r.Put("/{id}", handlers.UpdateBusiness(database))
+			r.Post("/{id}/save", handlers.SaveBusiness(database))
+			r.Delete("/{id}/save", handlers.UnsaveBusiness(database))
+			r.Post("/{id}/verify", handlers.VerifyBusiness(database))
+		})
+
+		// Posts endpoints
+		r.Route("/posts", func(r chi.Router) {
+			r.Post("/", handlers.CreatePost(database))
+			r.Get("/feed", handlers.GetFeed(database))
+			r.Get("/user/{userId}", handlers.GetUserPosts(database))
+			r.Get("/{id}", handlers.GetPost(database))
+			r.Delete("/{id}", handlers.DeletePost(database))
+			r.Post("/{id}/like", handlers.LikePost(database))
+			r.Delete("/{id}/like", handlers.UnlikePost(database))
+		})
 	})
 
 	// Create server

@@ -14,6 +14,14 @@ type Config struct {
 	GeocoderHost  string
 	TileHost      string
 	RateLimit     int // requests per minute
+
+	// Database
+	DBHost     string
+	DBPort     string
+	DBUser     string
+	DBPassword string
+	DBName     string
+	DBSSLMode  string
 }
 
 func Load() *Config {
@@ -26,6 +34,14 @@ func Load() *Config {
 		GeocoderHost:  getEnv("GEOCODER_HOST", "http://nominatim:8080"),
 		TileHost:      getEnv("TILE_HOST", "http://tileserver:8080"),
 		RateLimit:     getEnvInt("RATE_LIMIT", 100),
+
+		// Database
+		DBHost:     getEnv("DB_HOST", "localhost"),
+		DBPort:     getEnv("DB_PORT", "5432"),
+		DBUser:     getEnv("DB_USER", "didi"),
+		DBPassword: getEnv("DB_PASSWORD", "didi_password"),
+		DBName:     getEnv("DB_NAME", "didi"),
+		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
 	}
 }
 
