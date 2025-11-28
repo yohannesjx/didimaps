@@ -15,17 +15,59 @@ export default function Map() {
             style: {
                 version: 8,
                 sources: {
-                    osm: {
-                        type: 'raster',
-                        tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                        tileSize: 256,
+                    openmaptiles: {
+                        type: 'vector',
+                        tiles: [window.location.origin + '/api/tiles/{z}/{x}/{y}.pbf'],
+                        minzoom: 0,
+                        maxzoom: 14,
                     },
                 },
                 layers: [
                     {
-                        id: 'osm',
-                        type: 'raster',
-                        source: 'osm',
+                        id: 'background',
+                        type: 'background',
+                        paint: {
+                            'background-color': '#0c0c0c',
+                        },
+                    },
+                    {
+                        id: 'water',
+                        type: 'fill',
+                        source: 'openmaptiles',
+                        'source-layer': 'water',
+                        paint: {
+                            'fill-color': '#1b1b1d',
+                        },
+                    },
+                    {
+                        id: 'landcover',
+                        type: 'fill',
+                        source: 'openmaptiles',
+                        'source-layer': 'landcover',
+                        paint: {
+                            'fill-color': '#2a2a2a',
+                            'fill-opacity': 0.4,
+                        },
+                    },
+                    {
+                        id: 'roads',
+                        type: 'line',
+                        source: 'openmaptiles',
+                        'source-layer': 'transportation',
+                        paint: {
+                            'line-color': '#3a3a3a',
+                            'line-width': 2,
+                        },
+                    },
+                    {
+                        id: 'buildings',
+                        type: 'fill',
+                        source: 'openmaptiles',
+                        'source-layer': 'building',
+                        paint: {
+                            'fill-color': '#2a2a2a',
+                            'fill-opacity': 0.7,
+                        },
                     },
                 ],
             },
