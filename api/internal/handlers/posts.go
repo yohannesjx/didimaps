@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"maps/api/internal/middleware"
-
 	"github.com/go-chi/chi/v5"
 )
 
