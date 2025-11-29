@@ -81,17 +81,21 @@
     margin-left: 4px;
 }
 
-/* Suggestions Dropdown */
-.search-suggestions {
+/* Remove shadow when focused */
+.search-box-floating.focused .search-input-container {
+    box-shadow: none;
+    border-bottom: 1px solid #f0f0f0;
+    border-radius: 24px 24px 0 0;
+}
+
+/* Dropdown Container */
+.search-dropdown-content {
     background: white;
     border-radius: 0 0 24px 24px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    margin-top: -24px;
-    /* Overlap with input to look seamless */
-    padding-top: 24px;
-    /* Space for input */
+    padding-bottom: 8px;
     overflow: hidden;
-    z-index: 1000;
+    margin-top: 0;
     width: 100%;
 }
 
@@ -136,6 +140,77 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Add Business Card */
+.add-business-card {
+    margin: 12px 16px 16px 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.add-business-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.add-business-text h3 {
+    font-size: 15px;
+    margin: 0 0 4px 0;
+    color: #202124;
+    font-weight: 500;
+}
+
+.add-business-text p {
+    font-size: 13px;
+    margin: 0;
+    color: #5f6368;
+    line-height: 1.4;
+}
+
+.add-business-visual {
+    font-size: 24px;
+    margin-left: 12px;
+}
+
+.add-business-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.pill-btn {
+    border: none;
+    border-radius: 18px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: inherit;
+}
+
+.pill-btn.primary {
+    background: #1a73e8;
+    color: white;
+}
+
+.pill-btn.primary:hover {
+    background: #1557b0;
+}
+
+.pill-btn.secondary {
+    background: white;
+    color: #1a73e8;
+    border: 1px solid #dadce0;
+}
+
+.pill-btn.secondary:hover {
+    background: #f1f3f4;
 }
 
 /* Category Pills */
