@@ -140,12 +140,17 @@ function App() {
     setIsSidebarVisible(true); // Show sidebar to show map results
   };
 
-  // Show sidebar when business is selected
+  // Automatically open sidebar when searching
   useEffect(() => {
-    if (selectedBusiness) {
+    if (searchQuery) {
       setIsSidebarVisible(true);
+
+      // If the user types something new (not just the name of the selected business), close the details
+      if (selectedBusiness && searchQuery !== selectedBusiness.name) {
+        setSelectedBusiness(null);
+      }
     }
-  }, [selectedBusiness]);
+  }, [searchQuery, selectedBusiness]);
 
   const handleMarkerClick = (business) => {
     if (isPickingLocation) return;
