@@ -207,6 +207,7 @@ const getStyle = (mode) => {
                 type: 'fill',
                 source: 'openmaptiles',
                 'source-layer': 'building',
+                maxzoom: 13,
                 paint: {
                     'fill-color': colors.building,
                     'fill-opacity': 1,
