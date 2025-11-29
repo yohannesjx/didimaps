@@ -117,9 +117,8 @@ func main() {
 		if !exists {
 			// Create Category
 			// fmt.Printf("Creating category: %s\n", catName)
-			err := didiDB.QueryRow("INSERT INTO categories (name, slug, icon) VALUES ($1, $2, $3) RETURNING id",
+			err := didiDB.QueryRow("INSERT INTO categories (name, icon) VALUES ($1, $2) RETURNING id",
 				strings.Title(catName),
-				strings.ReplaceAll(strings.ToLower(catName), " ", "-"),
 				"📍").Scan(&catID)
 			if err != nil {
 				log.Println("Failed to create category:", err)
