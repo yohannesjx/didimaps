@@ -61,13 +61,15 @@ function App() {
   };
 
   // Fetch businesses from API
-  const fetchBusinesses = async (lat, lng, zoom = 15, categoryId = null) => {
+  const fetchBusinesses = async (lat, lng, zoom = 15, categoryId = null, queryOverride = null) => {
     setLoading(true);
     try {
       let url;
       if (categoryId) {
         // Fetch by Category
-        url = `/api/business/search?category_id=${categoryId}&lat=${lat}&lng=${lng}`;
+        // Ensure we send a query so Nominatim works too
+        const q = queryOverride || searchQuery || '';
+        url = `/api/business/search?category_id=${categoryId}&lat=${lat}&lng=${lng}&q=${encodeURIComponent(q)}`;
       } else if (searchQuery) {
         // Hybrid Search (Local + Nominatim)
         url = `/api/business/search?q=${encodeURIComponent(searchQuery)}&lat=${lat}&lng=${lng}`;
@@ -127,7 +129,8 @@ function App() {
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
     setSearchQuery(category.name); // Optional: fill search bar
-    fetchBusinesses(mapCenter.lat, mapCenter.lng, mapZoom, category.id);
+    // Pass category name as queryOverride
+    fetchBusinesses(mapCenter.lat, mapCenter.lng, mapZoom, category.id, category.name);
     setIsSidebarVisible(true); // Show sidebar to show map results
   };
 
