@@ -1,8 +1,9 @@
 .business-details-panel {
     position: absolute;
     top: 16px;
-    left: 400px;
-    /* To the right of the sidebar (360px + gap) */
+    left: 360px;
+    /* Flush with sidebar */
+
     width: 375px;
     max-height: calc(100vh - 32px);
     background: white;
