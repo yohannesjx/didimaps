@@ -19,6 +19,12 @@ maps.didi.et {
         reverse_proxy tileserver:8000
     }
 
+    # Building tiles from PostGIS
+    handle /buildings-tiles/* {
+        uri strip_prefix /buildings-tiles
+        reverse_proxy pg_tileserv:7800
+    }
+
     # Frontend (SPA)
     handle {
         reverse_proxy frontend:80
