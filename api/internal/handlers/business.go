@@ -735,6 +735,7 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 				}
 
 				if err := json.NewDecoder(resp.Body).Decode(&nominatimResults); err == nil {
+					log.Printf("Nominatim returned %d results for query: %s", len(nominatimResults), q)
 					for _, nr := range nominatimResults {
 						lat, _ := strconv.ParseFloat(nr.Lat, 64)
 						lng, _ := strconv.ParseFloat(nr.Lon, 64)
@@ -764,14 +765,17 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 						// This prevents "new" from matching "123 New Street" instead of "New Hotel"
 						queryLower := strings.ToLower(q)
 						nameLower := strings.ToLower(name)
-						displayLower := strings.ToLower(nr.DisplayName)
 
-						// Check if query matches the name (good) or only the address (bad)
+						// Check if query matches the name
 						nameMatches := strings.Contains(nameLower, queryLower)
-						addressOnlyMatch := !nameMatches && strings.Contains(displayLower, queryLower)
 
-						// Skip if it's only an address match
-						if addressOnlyMatch {
+						// Also check brand and amenity
+						brandMatches := nr.Address.Brand != "" && strings.Contains(strings.ToLower(nr.Address.Brand), queryLower)
+						amenityMatches := nr.Address.Amenity != "" && strings.Contains(strings.ToLower(nr.Address.Amenity), queryLower)
+
+						// Skip only if it doesn't match name, brand, or amenity (pure address match)
+						if !nameMatches && !brandMatches && !amenityMatches {
+							log.Printf("Skipping address-only match: %s (query: %s)", name, q)
 							continue
 						}
 
