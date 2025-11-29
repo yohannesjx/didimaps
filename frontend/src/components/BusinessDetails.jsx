@@ -4,9 +4,13 @@ import './BusinessDetails.css';
 export default function BusinessDetails({ business, onClose, onExpand }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
+    const [dragOffset, setDragOffset] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+
     const panelRef = useRef(null);
     const startY = useRef(0);
     const currentY = useRef(0);
+    const startTime = useRef(0);
 
     useEffect(() => {
         if (onExpand) {
@@ -16,78 +20,106 @@ export default function BusinessDetails({ business, onClose, onExpand }) {
 
     if (!business) return null;
 
-    // Helper to format category
-    const formatCategory = (cat) => {
-        if (!cat) return 'Business';
-        if (typeof cat === 'object') return cat.name;
-        return cat.charAt(0).toUpperCase() + cat.slice(1);
-    };
-
     // Helper to generate stars
     const renderStars = (rating) => {
         const stars = [];
         for (let i = 1; i <= 5; i++) {
             if (i <= rating) stars.push('★');
-            else if (i - 0.5 <= rating) stars.push('✫'); // Half star approximation
+            else if (i - 0.5 <= rating) stars.push('✫');
             else stars.push('☆');
         }
         return stars.join('');
     };
 
     // Placeholder image logic
-    const getImage = () => {
-        if (business.image_url) return business.image_url;
-        // Generate a placeholder based on category
-        const cat = (typeof business.category === 'string' ? business.category : business.category?.name || '').toLowerCase();
-        if (cat.includes('bank')) return 'https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?w=800&q=80';
-        if (cat.includes('hotel')) return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80';
-        if (cat.includes('cafe') || cat.includes('coffee')) return 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80';
-        if (cat.includes('restaurant') || cat.includes('food')) return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80';
-        return 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80'; // Generic building
+    const getImage = (index = 0) => {
+        // Use unsplash for demo if no business images
+        const images = [
+            business.image_url || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+            'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400&q=80',
+            'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400&q=80'
+        ];
+        return images[index % images.length];
     };
 
-    // Touch Handlers for Swipe
+    // Touch Handlers for Fluid Swipe
     const handleTouchStart = (e) => {
         startY.current = e.touches[0].clientY;
         currentY.current = startY.current;
+        startTime.current = Date.now();
+        setIsDragging(true);
     };
 
     const handleTouchMove = (e) => {
+        if (!isDragging) return;
         currentY.current = e.touches[0].clientY;
         const deltaY = currentY.current - startY.current;
 
-        // If swiping up and not expanded, or swiping down and expanded
-        // We could add live transform here for "buttery smooth" feel
+        // Only allow dragging down if expanded, or up/down if collapsed
+        // For simplicity, we just track delta. 
+        // If expanded (at top), deltaY > 0 means dragging down.
+        // If collapsed (at bottom), deltaY < 0 means dragging up.
+
+        setDragOffset(deltaY);
     };
 
     const handleTouchEnd = () => {
+        setIsDragging(false);
         const deltaY = currentY.current - startY.current;
-        const threshold = 50; // px to trigger change
+        const timeElapsed = Date.now() - startTime.current;
+        const velocity = Math.abs(deltaY) / timeElapsed;
 
-        if (deltaY < -threshold && !isExpanded) {
-            // Swipe Up -> Expand
-            setIsExpanded(true);
-        } else if (deltaY > threshold && isExpanded) {
-            // Swipe Down -> Collapse
-            setIsExpanded(false);
-        } else if (deltaY > threshold && !isExpanded) {
-            // Swipe Down when collapsed -> Close
-            onClose();
+        const threshold = 100; // px
+        const velocityThreshold = 0.5; // px/ms
+
+        if (isExpanded) {
+            // If expanded, dragging down significantly closes or collapses it
+            if (deltaY > threshold || (deltaY > 50 && velocity > velocityThreshold)) {
+                setIsExpanded(false);
+                setDragOffset(0);
+            } else {
+                // Snap back to expanded
+                setDragOffset(0);
+            }
+        } else {
+            // If collapsed
+            if (deltaY < -threshold || (deltaY < -50 && velocity > velocityThreshold)) {
+                // Dragged up -> Expand
+                setIsExpanded(true);
+                setDragOffset(0);
+            } else if (deltaY > threshold || (deltaY > 50 && velocity > velocityThreshold)) {
+                // Dragged down -> Close
+                onClose();
+            } else {
+                // Snap back to peek
+                setDragOffset(0);
+            }
         }
+    };
+
+    // Calculate transform style
+    const getPanelStyle = () => {
+        if (window.innerWidth > 768) return {}; // Desktop: no swipe transform
+
+        let transform = `translateY(${dragOffset}px)`;
+        // If not dragging, we want smooth transition. If dragging, instant follow.
+        const transition = isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
+
+        return { transform, transition };
     };
 
     return (
         <div
-            className={`business-details-panel ${isExpanded ? 'expanded' : ''}`}
+            className={`business - details - panel ${isExpanded ? 'expanded' : ''} `}
             ref={panelRef}
+            style={getPanelStyle()}
         >
-            {/* Drag Handle */}
+            {/* Drag Handle Area */}
             <div
                 className="drag-handle-area"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
-                onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="drag-handle-bar"></div>
             </div>
@@ -103,7 +135,6 @@ export default function BusinessDetails({ business, onClose, onExpand }) {
                         <span className="details-stars">{renderStars(business.avg_rating || 4.2)}</span>
                         <span className="details-review-count">({business.review_count || 94})</span>
                         <span className="details-dot">•</span>
-                        <span className="details-category-text">{formatCategory(business.category)}</span>
                     </div>
 
                     <div className="details-status-row">
@@ -153,12 +184,28 @@ export default function BusinessDetails({ business, onClose, onExpand }) {
                     </button>
                 </div>
 
+                {/* Photo Grid */}
+                <div className="details-photo-grid">
+                    <div className="photo-main">
+                        <img src={getImage(0)} alt="Main" />
+                    </div>
+                    <div className="photo-side-col">
+                        <div className="photo-side-item">
+                            <img src={getImage(1)} alt="Side 1" />
+                        </div>
+                        <div className="photo-side-item">
+                            <img src={getImage(2)} alt="Side 2" />
+                            <div className="photo-more-overlay">+12</div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Tabs */}
                 <div className="details-tabs">
                     {['Overview', 'Menu', 'Reviews', 'Photos', 'Updates'].map(tab => (
                         <button
                             key={tab}
-                            className={`tab-item ${activeTab === tab.toLowerCase() ? 'active' : ''}`}
+                            className={`tab - item ${activeTab === tab.toLowerCase() ? 'active' : ''} `}
                             onClick={() => setActiveTab(tab.toLowerCase())}
                         >
                             {tab}
@@ -166,49 +213,44 @@ export default function BusinessDetails({ business, onClose, onExpand }) {
                     ))}
                 </div>
 
-                {/* Photos Horizontal Scroll */}
-                <div className="details-photos-scroll">
-                    <img src={getImage()} alt="Main" className="detail-photo-large" />
-                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80" alt="Interior" className="detail-photo-small" />
-                    <img src="https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400&q=80" alt="Food" className="detail-photo-small" />
-                    <div className="detail-photo-more">
-                        <span>+12</span>
+                {/* Related Section */}
+                <div className="related-section">
+                    <h3 className="section-title">Related to your search</h3>
+                    <div className="related-item">
+                        <div className="related-icon-circle">E</div>
+                        <div className="related-text">
+                            <div className="related-main-text">This is my go to place, great food amazing service and ambiance.</div>
+                        </div>
+                        <div className="related-arrow">›</div>
                     </div>
                 </div>
 
                 <div className="details-info-list">
                     <div className="info-row">
                         <div className="info-icon">📍</div>
-                        <div className="info-text">{business.address || business.city || 'Addis Ababa, Ethiopia'}</div>
+                        <div className="info-text">{business.address || business.city || '342 Cape Verde St, Addis Ababa, Ethiopia'}</div>
                     </div>
 
                     <div className="info-row">
                         <div className="info-icon">🕒</div>
                         <div className="info-text">
                             <span style={{ color: '#188038', fontWeight: '500' }}>Open</span> • Closes 2 AM
+                            <span className="dropdown-arrow">▼</span>
                         </div>
                     </div>
 
-                    {business.phone && (
-                        <div className="info-row">
-                            <div className="info-icon">📞</div>
-                            <div className="info-text">
-                                <a href={`tel:${business.phone}`} className="info-link">{business.phone}</a>
-                            </div>
-                        </div>
-                    )}
-
                     <div className="info-row">
-                        <div className="info-icon">🌐</div>
+                        <div className="info-icon">✏️</div>
                         <div className="info-text">
-                            <a href="#" className="info-link">Add website</a>
+                            <a href="#" className="info-link">Suggest an edit</a>
                         </div>
                     </div>
                 </div>
 
                 {/* Extra content to allow scrolling when expanded */}
-                <div style={{ height: '200px' }}></div>
+                <div style={{ height: '100px' }}></div>
             </div>
         </div>
     );
 }
+
