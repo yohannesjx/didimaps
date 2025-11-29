@@ -1,7 +1,22 @@
 import React from 'react';
 import './BusinessDetails.css';
 
-export default function BusinessDetails({ business, onClose }) {
+import React, { useState, useEffect, useRef } from 'react';
+import './BusinessDetails.css';
+
+export default function BusinessDetails({ business, onClose, onExpand }) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [activeTab, setActiveTab] = useState('overview');
+    const panelRef = useRef(null);
+    const startY = useRef(0);
+    const currentY = useRef(0);
+
+    useEffect(() => {
+        if (onExpand) {
+            onExpand(isExpanded);
+        }
+    }, [isExpanded, onExpand]);
+
     if (!business) return null;
 
     // Helper to format category
@@ -34,63 +49,134 @@ export default function BusinessDetails({ business, onClose }) {
         return 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80'; // Generic building
     };
 
+    // Touch Handlers for Swipe
+    const handleTouchStart = (e) => {
+        startY.current = e.touches[0].clientY;
+        currentY.current = startY.current;
+    };
+
+    const handleTouchMove = (e) => {
+        currentY.current = e.touches[0].clientY;
+        const deltaY = currentY.current - startY.current;
+
+        // If swiping up and not expanded, or swiping down and expanded
+        // We could add live transform here for "buttery smooth" feel
+    };
+
+    const handleTouchEnd = () => {
+        const deltaY = currentY.current - startY.current;
+        const threshold = 50; // px to trigger change
+
+        if (deltaY < -threshold && !isExpanded) {
+            // Swipe Up -> Expand
+            setIsExpanded(true);
+        } else if (deltaY > threshold && isExpanded) {
+            // Swipe Down -> Collapse
+            setIsExpanded(false);
+        } else if (deltaY > threshold && !isExpanded) {
+            // Swipe Down when collapsed -> Close
+            onClose();
+        }
+    };
+
     return (
-        <div className="business-details-panel">
+        <div
+            className={`business-details-panel ${isExpanded ? 'expanded' : ''}`}
+            ref={panelRef}
+        >
+            {/* Drag Handle */}
+            <div
+                className="drag-handle-area"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <div className="drag-handle-bar"></div>
+            </div>
+
             <button className="details-close-btn" onClick={onClose}>✕</button>
 
-            <img src={getImage()} alt={business.name} className="details-header-image" />
+            <div className="details-scroll-content">
+                <div className="details-header-section">
+                    <h1 className="details-title">{business.name}</h1>
 
-            <div className="details-content">
-                <h1 className="details-title">{business.name}</h1>
+                    <div className="details-rating-row">
+                        <span className="details-rating">{business.avg_rating || '4.2'}</span>
+                        <span className="details-stars">{renderStars(business.avg_rating || 4.2)}</span>
+                        <span className="details-review-count">({business.review_count || 94})</span>
+                        <span className="details-dot">•</span>
+                        <span className="details-category-text">{formatCategory(business.category)}</span>
+                    </div>
 
-                <div className="details-rating-row">
-                    <span className="details-rating">{business.avg_rating || '0.0'}</span>
-                    <span className="details-stars">{renderStars(business.avg_rating || 0)}</span>
-                    <span className="details-review-count">({business.review_count || 0})</span>
-                </div>
-
-                <div className="details-category">
-                    {formatCategory(business.category)} • {business.city || 'Addis Ababa'}
+                    <div className="details-status-row">
+                        <span className="status-open">Open</span>
+                        <span className="status-dot">•</span>
+                        <span className="status-time">Closes 2 AM</span>
+                    </div>
                 </div>
 
                 <div className="details-actions">
-                    <button className="action-item" onClick={() => {
+                    <button className="action-item primary" onClick={() => {
                         const event = new CustomEvent('requestDirections', { detail: business });
                         window.dispatchEvent(event);
                     }}>
                         <div className="action-circle primary">
-                            <span style={{ transform: 'rotate(45deg)', display: 'inline-block' }}>➤</span>
+                            <span className="action-icon-font">➤</span>
                         </div>
                         <span className="action-label">Directions</span>
                     </button>
 
                     <button className="action-item">
                         <div className="action-circle">
-                            <span>🔖</span>
+                            <span className="action-icon-font">🚀</span>
+                        </div>
+                        <span className="action-label">Start</span>
+                    </button>
+
+                    <button className="action-item">
+                        <div className="action-circle">
+                            <span className="action-icon-font">📞</span>
+                        </div>
+                        <span className="action-label">Call</span>
+                    </button>
+
+                    <button className="action-item">
+                        <div className="action-circle">
+                            <span className="action-icon-font">🔖</span>
                         </div>
                         <span className="action-label">Save</span>
                     </button>
 
                     <button className="action-item">
                         <div className="action-circle">
-                            <span>📍</span>
-                        </div>
-                        <span className="action-label">Nearby</span>
-                    </button>
-
-                    <button className="action-item">
-                        <div className="action-circle">
-                            <span>📱</span>
-                        </div>
-                        <span className="action-label">Send to phone</span>
-                    </button>
-
-                    <button className="action-item">
-                        <div className="action-circle">
-                            <span>🔗</span>
+                            <span className="action-icon-font">🔗</span>
                         </div>
                         <span className="action-label">Share</span>
                     </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="details-tabs">
+                    {['Overview', 'Menu', 'Reviews', 'Photos', 'Updates'].map(tab => (
+                        <button
+                            key={tab}
+                            className={`tab-item ${activeTab === tab.toLowerCase() ? 'active' : ''}`}
+                            onClick={() => setActiveTab(tab.toLowerCase())}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Photos Horizontal Scroll */}
+                <div className="details-photos-scroll">
+                    <img src={getImage()} alt="Main" className="detail-photo-large" />
+                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80" alt="Interior" className="detail-photo-small" />
+                    <img src="https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400&q=80" alt="Food" className="detail-photo-small" />
+                    <div className="detail-photo-more">
+                        <span>+12</span>
+                    </div>
                 </div>
 
                 <div className="details-info-list">
@@ -102,20 +188,9 @@ export default function BusinessDetails({ business, onClose }) {
                     <div className="info-row">
                         <div className="info-icon">🕒</div>
                         <div className="info-text">
-                            <span style={{ color: '#188038', fontWeight: '500' }}>Open</span> • Closes 10 PM
+                            <span style={{ color: '#188038', fontWeight: '500' }}>Open</span> • Closes 2 AM
                         </div>
                     </div>
-
-                    {business.website && (
-                        <div className="info-row">
-                            <div className="info-icon">🌐</div>
-                            <div className="info-text">
-                                <a href={business.website} target="_blank" rel="noopener noreferrer" className="info-link">
-                                    {business.website.replace(/^https?:\/\//, '')}
-                                </a>
-                            </div>
-                        </div>
-                    )}
 
                     {business.phone && (
                         <div className="info-row">
@@ -127,12 +202,15 @@ export default function BusinessDetails({ business, onClose }) {
                     )}
 
                     <div className="info-row">
-                        <div className="info-icon">🛡️</div>
+                        <div className="info-icon">🌐</div>
                         <div className="info-text">
-                            <a href="#" className="info-link">Claim this business</a>
+                            <a href="#" className="info-link">Add website</a>
                         </div>
                     </div>
                 </div>
+
+                {/* Extra content to allow scrolling when expanded */}
+                <div style={{ height: '200px' }}></div>
             </div>
         </div>
     );

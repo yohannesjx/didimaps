@@ -196,6 +196,8 @@ function App() {
     fetchBusinesses(lat, lng, zoom);
   };
 
+  const [isUIHidden, setIsUIHidden] = useState(false);
+
   return (
     <div className="app-container">
       {/* Location Picker Overlay */}
@@ -236,27 +238,29 @@ function App() {
         </div>
       )}
 
-      <SearchBox
-        query={searchQuery}
-        suggestions={businesses}
-        categories={categories}
-        loading={loading}
-        onSearch={(q) => {
-          setSearchQuery(q);
-          setSelectedCategory(null);
-        }}
-        onSelectSuggestion={handleSuggestionSelect}
-        onSelectCategory={handleCategorySelect}
-        onAddBusiness={() => setIsAddBusinessOpen(true)}
-        onProfileClick={() => {
-          if (isAuthenticated) {
-            setIsProfileOpen(true);
-            setIsSidebarVisible(false);
-          } else {
-            setIsLoginOpen(true);
-          }
-        }}
-      />
+      <div className={`search-ui-container ${isUIHidden ? 'hidden' : ''}`}>
+        <SearchBox
+          query={searchQuery}
+          suggestions={businesses}
+          categories={categories}
+          loading={loading}
+          onSearch={(q) => {
+            setSearchQuery(q);
+            setSelectedCategory(null);
+          }}
+          onSelectSuggestion={handleSuggestionSelect}
+          onSelectCategory={handleCategorySelect}
+          onAddBusiness={() => setIsAddBusinessOpen(true)}
+          onProfileClick={() => {
+            if (isAuthenticated) {
+              setIsProfileOpen(true);
+              setIsSidebarVisible(false);
+            } else {
+              setIsLoginOpen(true);
+            }
+          }}
+        />
+      </div>
 
       <div className="sidebar-container" style={{ display: isPickingLocation ? 'none' : 'block' }}>
         <div className="search-container">
@@ -276,6 +280,7 @@ function App() {
             <BusinessDetails
               business={selectedBusiness}
               onClose={() => setSelectedBusiness(null)}
+              onExpand={(expanded) => setIsUIHidden(expanded)}
             />
           )}
 
