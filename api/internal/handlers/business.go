@@ -603,7 +603,7 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 
 		// 1. Restrict to Addis Ababa (Approximate Bounding Box)
 		// Lat: 8.80 to 9.10, Lng: 38.60 to 38.95
-		whereClauses = append(whereClauses, "b.lat BETWEEN 8.80 AND 9.10 AND b.lng BETWEEN 38.60 AND 38.95")
+		whereClauses = append(whereClauses, "ST_Y(b.geom) BETWEEN 8.80 AND 9.10 AND ST_X(b.geom) BETWEEN 38.60 AND 38.95")
 
 		// Add ILIKE condition for EACH term (AND logic)
 		// This ensures every typed word appears somewhere in the name
@@ -623,7 +623,7 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 		query := fmt.Sprintf(`
 			SELECT 
 				b.id, b.name, b.name_am, 
-				b.lat, b.lng, b.address, b.city, b.status,
+				ST_Y(b.geom) as lat, ST_X(b.geom) as lng, b.address, b.city, b.status,
 				COALESCE(b.avg_rating, 0), COALESCE(b.review_count, 0),
 				c.name as category_name, c.icon as category_icon
 			FROM businesses b
