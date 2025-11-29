@@ -162,8 +162,9 @@ function App() {
     // Reset the flag after a delay to allow for map animation (zoom + pan might fire multiple events)
     setTimeout(() => {
       ignoreMapMoveRef.current = false;
-    }, 2000);
+    }, 3000);
 
+    setSearchQuery(business.name); // Sync search box with selection
     setSelectedBusiness(business);
     setMapCenter({ lat: business.lat, lng: business.lng });
     setMapZoom(16);
