@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -690,56 +689,77 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 			businesses = []map[string]interface{}{}
 		}
 
-		// If local results are few, fetch from Nominatim
-		if len(businesses) < 5 {
-			nominatimURL := fmt.Sprintf("%s/search?q=%s&format=json&limit=5&addressdetails=1",
-				cfg.GeocoderHost, url.QueryEscape(q))
-
-			// Bias to Addis Ababa if no location provided
-			nominatimURL += "&viewbox=38.65,9.10,38.90,8.80&bounded=0"
+		// Call Nominatim for broader search
+		// Only if we have few results
+		if len(businesses) < 10 {
+			// Search Addis Ababa bounds
+			// viewbox=left,top,right,bottom (Nominatim uses different order sometimes, usually minlon,minlat,maxlon,maxlat or left,top,right,bottom)
+			// Nominatim: viewbox=<x1>,<y1>,<x2>,<y2> (left,top,right,bottom)
+			// Addis: 38.65,9.10,38.90,8.80
+			nominatimURL := fmt.Sprintf("%s/search?q=%s&format=json&limit=10&addressdetails=1", cfg.GeocoderHost, url.QueryEscape(q))
+			nominatimURL += "&viewbox=38.60,9.10,38.95,8.80&bounded=1" // bounded=1 enforces the viewbox
 
 			resp, err := http.Get(nominatimURL)
 			if err == nil {
 				defer resp.Body.Close()
-				body, _ := io.ReadAll(resp.Body)
-
 				var nominatimResults []struct {
-					PlaceID     int    `json:"place_id"`
+					PlaceID     int64  `json:"place_id"`
 					Lat         string `json:"lat"`
 					Lon         string `json:"lon"`
 					DisplayName string `json:"display_name"`
-					Type        string `json:"type"`
 					Name        string `json:"name"`
+					Type        string `json:"type"`
+					Class       string `json:"class"`
+					Address     struct {
+						City        string `json:"city"`
+						Town        string `json:"town"`
+						Village     string `json:"village"`
+						Suburb      string `json:"suburb"`
+						Road        string `json:"road"`
+						HouseNumber string `json:"house_number"`
+						Amenity     string `json:"amenity"`
+						Shop        string `json:"shop"`
+						Brand       string `json:"brand"`
+					} `json:"address"`
 				}
 
-				if json.Unmarshal(body, &nominatimResults) == nil {
+				if err := json.NewDecoder(resp.Body).Decode(&nominatimResults); err == nil {
 					for _, nr := range nominatimResults {
 						lat, _ := strconv.ParseFloat(nr.Lat, 64)
 						lng, _ := strconv.ParseFloat(nr.Lon, 64)
 
-						// Use Name if available, else first part of DisplayName
+						// Use Name if available, check brand/amenity for better names
 						name := nr.Name
-						if name == "" {
-							parts := strings.Split(nr.DisplayName, ",")
-							if len(parts) > 0 {
-								name = parts[0]
+						if name == "" || name == "Bank" || name == "Fuel" {
+							if nr.Address.Brand != "" {
+								name = nr.Address.Brand
+							} else if nr.Address.Amenity != "" {
+								name = nr.Address.Amenity
+							} else {
+								// Fallback to first part of display name
+								parts := strings.Split(nr.DisplayName, ",")
+								if len(parts) > 0 {
+									name = parts[0]
+								}
 							}
 						}
 
+						// Append specific branch info if available
+						if nr.Address.Suburb != "" && !strings.Contains(name, nr.Address.Suburb) {
+							name += " (" + nr.Address.Suburb + ")"
+						}
+
 						biz := map[string]interface{}{
-							"id":           fmt.Sprintf("nom_%d", nr.PlaceID),
+							"id":           fmt.Sprintf("nom-%d", nr.PlaceID),
 							"name":         name,
 							"lat":          lat,
 							"lng":          lng,
-							"city":         "External",
+							"source":       "nominatim",
+							"address":      nr.DisplayName,
+							"city":         "Addis Ababa",
+							"category":     nr.Type, // e.g. "bank", "cafe"
 							"avg_rating":   0,
 							"review_count": 0,
-							"address":      nr.DisplayName,
-							"source":       "nominatim",
-							"category": map[string]interface{}{
-								"name": nr.Type,
-								"icon": "map-pin",
-							},
 						}
 						businesses = append(businesses, biz)
 					}
