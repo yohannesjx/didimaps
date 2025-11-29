@@ -197,6 +197,17 @@ const getStyle = (mode) => {
                 },
             },
             {
+                id: 'building-2d',
+                type: 'fill',
+                source: 'openmaptiles',
+                'source-layer': 'building',
+                paint: {
+                    'fill-color': colors.building,
+                    'fill-opacity': 1,
+                    'fill-outline-color': '#cfcfcf'
+                }
+            },
+            {
                 id: '3d-buildings',
                 source: 'openmaptiles',
                 'source-layer': 'building',
