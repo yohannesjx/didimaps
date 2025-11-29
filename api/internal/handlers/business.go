@@ -588,26 +588,48 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 			LogActivity(db, userID, "search", map[string]string{"query": q}, r.RemoteAddr)
 		}
 
-		rows, err := db.Query(`
+		// Smart Search: Token-based matching
+		// Split query into words to allow "national palace" to match "National Jubilee Palace"
+		terms := strings.Fields(q)
+		if len(terms) == 0 {
+			jsonResponse(w, map[string]interface{}{"businesses": []map[string]interface{}{}}, http.StatusOK)
+			return
+		}
+
+		var whereClauses []string
+		var args []interface{}
+
+		// Base condition
+		whereClauses = append(whereClauses, "b.status = 'verified'")
+
+		// Add ILIKE condition for EACH term (AND logic)
+		// This ensures every typed word appears somewhere in the name/description
+		for i, term := range terms {
+			// $1, $2, etc.
+			placeholder := fmt.Sprintf("$%d", i+1)
+			clause := fmt.Sprintf("(b.name ILIKE '%%' || %s || '%%' OR b.name_am ILIKE '%%' || %s || '%%' OR b.description ILIKE '%%' || %s || '%%')", placeholder, placeholder, placeholder)
+			whereClauses = append(whereClauses, clause)
+			args = append(args, term)
+		}
+
+		// Add limit as the last argument
+		args = append(args, limit)
+		limitPlaceholder := fmt.Sprintf("$%d", len(args))
+
+		query := fmt.Sprintf(`
 			SELECT 
-				b.id, b.name, b.name_am,
-				ST_Y(b.geom) as lat, ST_X(b.geom) as lng,
-				b.address, b.city, b.status,
-				b.avg_rating, b.review_count,
+				b.id, b.name, b.name_am, 
+				b.lat, b.lng, b.address, b.city, b.status,
+				COALESCE(b.avg_rating, 0), COALESCE(b.review_count, 0),
 				c.name as category_name, c.icon as category_icon
 			FROM businesses b
 			LEFT JOIN categories c ON b.category_id = c.id
-			WHERE b.status = 'verified'
-			AND (
-				b.name ILIKE '%' || $1 || '%'
-				OR b.name_am ILIKE '%' || $1 || '%'
-				OR b.description ILIKE '%' || $1 || '%'
-			)
-			ORDER BY 
-				CASE WHEN b.name ILIKE $1 || '%' THEN 0 ELSE 1 END,
-				b.avg_rating DESC
-			LIMIT $2
-		`, q, limit)
+			WHERE %s
+			ORDER BY b.avg_rating DESC
+			LIMIT %s
+		`, strings.Join(whereClauses, " AND "), limitPlaceholder)
+
+		rows, err := db.QueryContext(r.Context(), query, args...)
 
 		if err != nil {
 			log.Printf("Failed to search businesses: %v", err)
