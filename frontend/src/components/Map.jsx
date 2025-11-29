@@ -479,74 +479,150 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         }
     }, [isSidebarVisible]);
 
-    // Update markers when businesses change
+    // Update 'my-places' source when businesses change
     useEffect(() => {
-        if (!map.current || !businesses) return;
+        if (!map.current) return;
 
-        // Clear existing markers
-        markers.current.forEach(m => m.remove());
-        markers.current = [];
+        const geojson = {
+            type: 'FeatureCollection',
+            features: businesses.map(b => ({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [b.lng, b.lat]
+                },
+                properties: {
+                    id: b.id,
+                    name: b.name,
+                    category: b.category?.name || b.category,
+                    icon: getCategoryIcon(b.category?.name || b.category),
+                    color: getCategoryColor(b.category?.name || b.category),
+                    rating: b.avg_rating
+                }
+            }))
+        };
 
-        // Add new markers
-        businesses.forEach((business) => {
+        if (map.current.getSource('my-places')) {
+            map.current.getSource('my-places').setData(geojson);
+        } else {
+            // Source doesn't exist yet (map might be initializing), it will be added in map load
+            // But we can try to add it if map is loaded
+            if (map.current.isStyleLoaded()) {
+                map.current.addSource('my-places', { type: 'geojson', data: geojson });
+                // Add layer... (handled in init or separate function)
+            }
+        }
+    }, [businesses]);
+
+    // Initialize Map Layers for Businesses
+    useEffect(() => {
+        if (!map.current) return;
+
+        const addLayers = () => {
+            if (!map.current.getSource('my-places')) {
+                map.current.addSource('my-places', {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: [] }
+                });
+
+                // Circle background for the icon
+                map.current.addLayer({
+                    id: 'my-places-circle',
+                    type: 'circle',
+                    source: 'my-places',
+                    paint: {
+                        'circle-radius': 14,
+                        'circle-color': ['get', 'color'],
+                        'circle-stroke-width': 2,
+                        'circle-stroke-color': '#ffffff',
+                        'circle-opacity': 0.9
+                    }
+                });
+
+                // Icon (Emoji)
+                map.current.addLayer({
+                    id: 'my-places-icon',
+                    type: 'symbol',
+                    source: 'my-places',
+                    layout: {
+                        'text-field': ['get', 'icon'],
+                        'text-size': 16,
+                        'text-allow-overlap': true,
+                        'text-anchor': 'center'
+                    }
+                });
+
+                // Label (Name) - Only visible at higher zoom levels
+                map.current.addLayer({
+                    id: 'my-places-label',
+                    type: 'symbol',
+                    source: 'my-places',
+                    minzoom: 14,
+                    layout: {
+                        'text-field': ['get', 'name'],
+                        'text-font': ['Noto Sans Regular'],
+                        'text-size': 12,
+                        'text-offset': [0, 1.5],
+                        'text-anchor': 'top',
+                        'text-max-width': 12
+                    },
+                    paint: {
+                        'text-color': '#333333',
+                        'text-halo-color': '#ffffff',
+                        'text-halo-width': 2
+                    }
+                });
+
+                // Handle Clicks
+                map.current.on('click', 'my-places-circle', (e) => {
+                    const feature = e.features[0];
+                    // Reconstruct business object from properties
+                    const business = {
+                        id: feature.properties.id,
+                        name: feature.properties.name,
+                        category: feature.properties.category,
+                        lng: feature.geometry.coordinates[0],
+                        lat: feature.geometry.coordinates[1],
+                        avg_rating: feature.properties.rating
+                    };
+                    onMarkerClick(business);
+                });
+
+                // Cursor pointer
+                map.current.on('mouseenter', 'my-places-circle', () => {
+                    map.current.getCanvas().style.cursor = 'pointer';
+                });
+                map.current.on('mouseleave', 'my-places-circle', () => {
+                    map.current.getCanvas().style.cursor = '';
+                });
+            }
+        };
+
+        if (map.current.isStyleLoaded()) {
+            addLayers();
+        } else {
+            map.current.on('load', addLayers);
+        }
+    }, [map.current]); // Run once when map is ready
+
+    // Selected Business Marker (Big Pin)
+    useEffect(() => {
+        if (!map.current) return;
+
+        // Remove existing selected marker
+        const existing = document.getElementsByClassName('selected-marker');
+        while (existing.length > 0) existing[0].remove();
+
+        if (selectedBusiness) {
             const el = document.createElement('div');
-            el.className = 'business-marker';
+            el.className = 'selected-marker';
+            el.innerHTML = `<div style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">📍</div>`;
 
-            // Use custom icon based on category
-            const categoryName = business.category?.name || business.category;
-            const icon = getCategoryIcon(categoryName);
-            const markerColor = getCategoryColor(categoryName);
-
-            el.innerHTML = `
-                <div class="yandex-marker" style="display:flex;align-items:center;gap:6px;transform:translate(-18px,-18px);cursor:pointer;">
-                    <div class="yandex-icon" style="width:36px;height:36px;border-radius:50%;background:${markerColor};border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
-                        ${icon}
-                    </div>
-                    <div class="yandex-label" style="background:white;padding:6px 10px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;flex-direction:column;min-width:100px;">
-                        <div class="yandex-name-row">
-                            <span class="yandex-name" style="font-weight:600;font-size:13px;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${business.name}</span>
-                        </div>
-                        <div class="yandex-rating" style="font-size:12px;color:#555;display:flex;align-items:center;gap:2px;">
-                            <span>★</span> <span>${business.avg_rating ? business.avg_rating.toFixed(1) : 'New'}</span>
-                        </div>
-                        <div class="yandex-subtitle" style="font-size:11px;color:#888;">
-                            ${business.category?.name || business.category}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            el.style.zIndex = '1'; // Ensure text is above other things
-
-
-            el.addEventListener('mouseenter', () => {
-                el.style.transform = 'scale(1.2)';
-            });
-
-            el.addEventListener('mouseleave', () => {
-                el.style.transform = 'scale(1)';
-            });
-
-            const popup = new maplibregl.Popup({ offset: 25 })
-                .setHTML(`
-          <div style="padding: 8px;">
-            <strong style="font-size: 14px;">${business.name}</strong><br/>
-            <span style="font-size: 12px; color: #666;">${business.category?.name || business.category}</span>
-          </div>
-        `);
-
-            const marker = new maplibregl.Marker(el)
-                .setLngLat([business.lng, business.lat])
-                .setPopup(popup)
+            new maplibregl.Marker(el)
+                .setLngLat([selectedBusiness.lng, selectedBusiness.lat])
                 .addTo(map.current);
-
-            el.addEventListener('click', () => {
-                onMarkerClick(business);
-            });
-
-            markers.current.push(marker);
-        });
-    }, [businesses, onMarkerClick, isCategoryView]);
+        }
+    }, [selectedBusiness]);
 
     // Fly to selected business
     useEffect(() => {
