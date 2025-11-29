@@ -1,6 +1,3 @@
-import React from 'react';
-import './BusinessDetails.css';
-
 import React, { useState, useEffect, useRef } from 'react';
 import './BusinessDetails.css';
 
