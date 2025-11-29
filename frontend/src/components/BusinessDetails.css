@@ -8,15 +8,13 @@
     border-radius: 24px 24px 0 0;
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
     z-index: 2000;
-    /* Transition is handled inline for drag, but default here */
-    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* Smooth transition for height changes */
+    transition: height 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
     height: 60vh;
-    /* Increased initial height for better visibility */
     /* Initial peek height */
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    will-change: transform, height;
 }
 
 .business-details-panel.expanded {

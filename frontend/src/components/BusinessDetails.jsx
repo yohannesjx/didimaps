@@ -42,84 +42,42 @@ export default function BusinessDetails({ business, onClose, onExpand }) {
         return images[index % images.length];
     };
 
-    // Touch Handlers for Fluid Swipe
+    // Touch Handlers for Simple Swipe Detection
     const handleTouchStart = (e) => {
         startY.current = e.touches[0].clientY;
-        currentY.current = startY.current;
-        startTime.current = Date.now();
-        setIsDragging(true);
     };
 
-    const handleTouchMove = (e) => {
-        if (!isDragging) return;
-        currentY.current = e.touches[0].clientY;
-        const deltaY = currentY.current - startY.current;
+    const handleTouchEnd = (e) => {
+        const endY = e.changedTouches[0].clientY;
+        const deltaY = endY - startY.current;
+        const threshold = 50; // px to trigger change
 
-        // Only allow dragging down if expanded, or up/down if collapsed
-        // For simplicity, we just track delta. 
-        // If expanded (at top), deltaY > 0 means dragging down.
-        // If collapsed (at bottom), deltaY < 0 means dragging up.
+        if (Math.abs(deltaY) < threshold) return; // Ignore small taps/jitters
 
-        setDragOffset(deltaY);
-    };
-
-    const handleTouchEnd = () => {
-        setIsDragging(false);
-        const deltaY = currentY.current - startY.current;
-        const timeElapsed = Date.now() - startTime.current;
-        const velocity = Math.abs(deltaY) / timeElapsed;
-
-        const threshold = 100; // px
-        const velocityThreshold = 0.5; // px/ms
-
-        if (isExpanded) {
-            // If expanded, dragging down significantly closes or collapses it
-            if (deltaY > threshold || (deltaY > 50 && velocity > velocityThreshold)) {
-                setIsExpanded(false);
-                setDragOffset(0);
-            } else {
-                // Snap back to expanded
-                setDragOffset(0);
-            }
+        if (deltaY < 0) {
+            // Swipe Up
+            if (!isExpanded) setIsExpanded(true);
         } else {
-            // If collapsed
-            if (deltaY < -threshold || (deltaY < -50 && velocity > velocityThreshold)) {
-                // Dragged up -> Expand
-                setIsExpanded(true);
-                setDragOffset(0);
-            } else if (deltaY > threshold || (deltaY > 50 && velocity > velocityThreshold)) {
-                // Dragged down -> Close
-                onClose();
+            // Swipe Down
+            if (isExpanded) {
+                setIsExpanded(false);
             } else {
-                // Snap back to peek
-                setDragOffset(0);
+                onClose();
             }
         }
     };
 
-    // Calculate transform style
-    const getPanelStyle = () => {
-        if (window.innerWidth > 768) return {}; // Desktop: no swipe transform
-
-        let transform = `translateY(${dragOffset}px)`;
-        // If not dragging, we want smooth transition. If dragging, instant follow.
-        const transition = isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
-
-        return { transform, transition };
-    };
-
     return (
         <div
-            className={`business - details - panel ${isExpanded ? 'expanded' : ''} `}
+            className={`business-details-panel ${isExpanded ? 'expanded' : ''}`}
             ref={panelRef}
-            style={getPanelStyle()}
         >
             {/* Drag Handle Area */}
             <div
                 className="drag-handle-area"
                 onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
+                onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="drag-handle-bar"></div>
             </div>
