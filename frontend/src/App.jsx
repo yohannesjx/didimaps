@@ -158,6 +158,12 @@ function App() {
 
   const handleSuggestionSelect = (business) => {
     ignoreMapMoveRef.current = true; // Prevent auto-fetch on map move
+
+    // Reset the flag after a delay to allow for map animation (zoom + pan might fire multiple events)
+    setTimeout(() => {
+      ignoreMapMoveRef.current = false;
+    }, 2000);
+
     setSelectedBusiness(business);
     setMapCenter({ lat: business.lat, lng: business.lng });
     setMapZoom(16);
@@ -177,7 +183,7 @@ function App() {
     setMapZoom(zoom);
 
     if (ignoreMapMoveRef.current) {
-      ignoreMapMoveRef.current = false;
+      console.log('Ignoring map move (programmatic navigation)');
       return;
     }
 
