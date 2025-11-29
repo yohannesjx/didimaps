@@ -110,13 +110,14 @@ const getStyle = (mode) => {
     const isDark = mode === 'dark';
 
     // Yandex-like Colors
+    // Enhanced Vibrant Colors
     const colors = {
-        background: isDark ? '#0c0c0c' : '#f2f2f0',
-        water: isDark ? '#1b1b1d' : '#aadaff',
-        landcover: isDark ? '#2a2a2a' : '#e6f0e6', // Greenish tint for land
-        park: isDark ? '#2a2a2a' : '#c8e6c9',      // Distinct green for parks
-        road: isDark ? '#3a3a3a' : '#ffffff',
-        roadBorder: isDark ? '#222' : '#d6d6d6',
+        background: isDark ? '#0c0c0c' : '#F3F4F6', // Cleaner grey-blueish white
+        water: isDark ? '#1b1b1d' : '#89CFF0',       // Vibrant blue
+        landcover: isDark ? '#2a2a2a' : '#E8F5E9',   // Light green tint
+        park: isDark ? '#2a2a2a' : '#A5D6A7',        // Vibrant green
+        road: isDark ? '#3a3a3a' : '#FFFFFF',        // White
+        roadBorder: isDark ? '#222' : '#CFD8DC',     // Blue-grey border
         text: isDark ? '#ffffff' : '#333333',
         textHalo: isDark ? '#000000' : '#ffffff'
     };
@@ -373,6 +374,28 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             }
         };
     }, []);
+
+    // Toggle 3D Buildings Layer Visibility
+    useEffect(() => {
+        if (!map.current) return;
+
+        const update3DLayer = () => {
+            if (map.current.getLayer('3d-buildings')) {
+                map.current.setLayoutProperty(
+                    '3d-buildings',
+                    'visibility',
+                    is3D ? 'visible' : 'none'
+                );
+            }
+        };
+
+        // If style is still loading, wait for it
+        if (!map.current.isStyleLoaded()) {
+            map.current.once('styledata', update3DLayer);
+        } else {
+            update3DLayer();
+        }
+    }, [is3D, styleMode]);
 
     // Update User Marker
     useEffect(() => {
