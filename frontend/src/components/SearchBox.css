@@ -6,25 +6,29 @@
 .search-box-floating {
     position: absolute;
     top: 16px;
-    left: 380px;
-    /* Sidebar width (360) + 20px padding */
+    left: 20px;
+    /* Moved to left edge */
     z-index: 1000;
     display: flex;
-    gap: 12px;
-    align-items: center;
+    flex-direction: column;
+    /* Allow dropdown to stack */
+    gap: 0;
+    width: 360px;
+    /* Fixed width for desktop */
 }
 
 .search-input-container {
     background: white;
     border-radius: 24px;
-    /* Pill shape */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     padding: 0 8px 0 16px;
     height: 48px;
-    width: 360px;
+    width: 100%;
     transition: box-shadow 0.2s;
+    position: relative;
+    z-index: 1001;
 }
 
 .search-input-container:hover {
@@ -34,7 +38,6 @@
 .search-icon {
     font-size: 18px;
     color: #ea4335;
-    /* Google Red */
     margin-right: 12px;
 }
 
@@ -67,7 +70,6 @@
     width: 32px;
     height: 32px;
     background: #8e24aa;
-    /* Purple avatar */
     color: white;
     border-radius: 50%;
     display: flex;
@@ -79,12 +81,69 @@
     margin-left: 4px;
 }
 
+/* Suggestions Dropdown */
+.search-suggestions {
+    background: white;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin-top: -24px;
+    /* Overlap with input to look seamless */
+    padding-top: 24px;
+    /* Space for input */
+    overflow: hidden;
+    z-index: 1000;
+    width: 100%;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.suggestion-item:hover {
+    background: #f1f3f4;
+}
+
+.suggestion-icon {
+    font-size: 20px;
+    color: #70757a;
+    min-width: 24px;
+    text-align: center;
+}
+
+.suggestion-text {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.suggestion-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #202124;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion-address {
+    font-size: 13px;
+    color: #70757a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Category Pills */
 .category-pills-floating {
     position: absolute;
     top: 16px;
-    left: 760px;
-    /* Sidebar (360) + Search (360) + Padding (40) */
+    left: 400px;
+    /* Search (360) + Padding (20) + Gap (20) */
     z-index: 1000;
     display: flex;
     gap: 8px;
@@ -134,12 +193,10 @@
         right: 16px;
         top: 16px;
         width: auto;
-        /* Override fixed width */
     }
 
     .search-input-container {
         width: 100%;
-        /* Full width */
     }
 
     /* Category Pills: Scrollable Row Below Search */
@@ -147,15 +204,11 @@
         left: 0;
         width: 100%;
         top: 76px;
-        /* Below search box */
         overflow-x: auto;
         white-space: nowrap;
         padding-bottom: 12px;
-        /* Space for bottom shadow */
         padding-left: 20px;
-        /* 16px align + 4px for shadow */
         padding-right: 20px;
-        /* 16px align + 4px for shadow */
         -webkit-overflow-scrolling: touch;
     }
 

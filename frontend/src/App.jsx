@@ -103,15 +103,6 @@ function App() {
     return () => window.removeEventListener('requestDirections', handleDirectionsRequest);
   }, []);
 
-  // Show sidebar when search query exists
-  useEffect(() => {
-    if (searchQuery) {
-      setIsSidebarVisible(true);
-    } else if (!selectedBusiness) {
-      setIsSidebarVisible(false);
-    }
-  }, [searchQuery, selectedBusiness]);
-
   // Show sidebar when business is selected
   useEffect(() => {
     if (selectedBusiness) {
@@ -124,6 +115,13 @@ function App() {
     setSelectedBusiness(business);
     setIsSidebarVisible(true);
     setIsProfileOpen(false);
+  };
+
+  const handleSuggestionSelect = (business) => {
+    setSelectedBusiness(business);
+    setMapCenter({ lat: business.lat, lng: business.lng });
+    setMapZoom(16);
+    setIsSidebarVisible(true);
   };
 
   const handleMapMove = ({ lat, lng, zoom }) => {
@@ -172,24 +170,23 @@ function App() {
         </div>
       )}
 
+      <SearchBox
+        query={searchQuery}
+        suggestions={businesses}
+        onSearch={(q) => setSearchQuery(q)}
+        onSelectSuggestion={handleSuggestionSelect}
+        onProfileClick={() => {
+          if (isAuthenticated) {
+            setIsProfileOpen(true);
+            setIsSidebarVisible(false);
+          } else {
+            setIsLoginOpen(true);
+          }
+        }}
+      />
+
       <div className="sidebar-container" style={{ display: isPickingLocation ? 'none' : 'block' }}>
         <div className="search-container">
-          <SearchBox
-            query={searchQuery}
-            onSearch={(q) => {
-              setSearchQuery(q);
-              if (q) setIsSidebarVisible(true);
-            }}
-            onProfileClick={() => {
-              if (isAuthenticated) {
-                setIsProfileOpen(true);
-                setIsSidebarVisible(false);
-              } else {
-                setIsLoginOpen(true);
-              }
-            }}
-          />
-
           <BusinessSidebar
             businesses={businesses}
             selectedBusiness={selectedBusiness}
