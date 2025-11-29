@@ -173,6 +173,7 @@ function App() {
       <SearchBox
         query={searchQuery}
         suggestions={businesses}
+        loading={loading}
         onSearch={(q) => setSearchQuery(q)}
         onSelectSuggestion={handleSuggestionSelect}
         onAddBusiness={() => setIsAddBusinessOpen(true)}

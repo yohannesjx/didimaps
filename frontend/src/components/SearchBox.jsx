@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './SearchBox.css?v=2';
 
-export default function SearchBox({ query, onSearch, onProfileClick, suggestions = [], onSelectSuggestion, onAddBusiness }) {
+export default function SearchBox({ query, onSearch, onProfileClick, suggestions = [], onSelectSuggestion, onAddBusiness, loading }) {
     const [activeCategory, setActiveCategory] = useState('all');
     const [isFocused, setIsFocused] = useState(false);
 
@@ -48,25 +48,29 @@ export default function SearchBox({ query, onSearch, onProfileClick, suggestions
                 {/* Dropdown Content */}
                 {isFocused && (
                     <div className="search-dropdown-content">
+                        {loading && <div style={{ padding: '12px 20px', color: '#666', fontSize: '14px' }}>Searching...</div>}
+
                         {/* List Items */}
-                        <div className="search-list">
-                            {displayItems.slice(0, 5).map((item) => (
-                                <div
-                                    key={item.id}
-                                    className="suggestion-item"
-                                    onClick={() => {
-                                        onSelectSuggestion(item);
-                                        setIsFocused(false);
-                                    }}
-                                >
-                                    <span className="suggestion-icon">{item.type === 'recent' ? '🕒' : '📍'}</span>
-                                    <div className="suggestion-text">
-                                        <div className="suggestion-name">{item.name}</div>
-                                        <div className="suggestion-address">{item.address || item.city}</div>
+                        {!loading && (
+                            <div className="search-list">
+                                {displayItems.slice(0, 6).map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className="suggestion-item"
+                                        onClick={() => {
+                                            onSelectSuggestion(item);
+                                            setIsFocused(false);
+                                        }}
+                                    >
+                                        <span className="suggestion-icon">{item.type === 'recent' ? '🕒' : '📍'}</span>
+                                        <div className="suggestion-text">
+                                            <div className="suggestion-name">{item.name}</div>
+                                            <div className="suggestion-address">{item.address || item.city}</div>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Add Business Card (Only when query is empty) */}
                         {!query && (
