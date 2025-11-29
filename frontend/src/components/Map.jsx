@@ -132,12 +132,6 @@ const getStyle = (mode) => {
                 tiles: [window.location.origin + `/api/tiles/{z}/{x}/{y}.pbf?v=3`], // Fresh tiles
                 minzoom: 0,
                 maxzoom: 14,
-            },
-            'osm-buildings': {
-                type: 'vector',
-                tiles: [window.location.origin + '/buildings-tiles/public.buildings/{z}/{x}/{y}.pbf'],
-                minzoom: 12,
-                maxzoom: 15,
             }
         },
         layers: [
@@ -207,7 +201,6 @@ const getStyle = (mode) => {
                 type: 'fill',
                 source: 'openmaptiles',
                 'source-layer': 'building',
-                maxzoom: 13,
                 paint: {
                     'fill-color': colors.building,
                     'fill-opacity': 1,
@@ -242,18 +235,6 @@ const getStyle = (mode) => {
                     ],
                     'fill-extrusion-opacity': 0.9
                 },
-            },
-            {
-                id: 'osm-buildings-detailed',
-                type: 'fill',
-                source: 'osm-buildings',
-                'source-layer': 'public.buildings',
-                minzoom: 13,
-                paint: {
-                    'fill-color': colors.building,
-                    'fill-opacity': 0.8,
-                    'fill-outline-color': '#999999'
-                }
             },
             {
                 id: 'place-label',
