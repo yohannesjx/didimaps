@@ -587,8 +587,8 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 			LogActivity(db, userID, "search", map[string]string{"query": q}, r.RemoteAddr)
 		}
 
-		// Smart Search: Token-based matching
-		// Split query into words to allow "national palace" to match "National Jubilee Palace"
+		// Smart Search: Token-based matching with OR logic
+		// Split query into words to allow flexible matching
 		terms := strings.Fields(q)
 		if len(terms) == 0 {
 			jsonResponse(w, map[string]interface{}{"businesses": []map[string]interface{}{}}, http.StatusOK)
@@ -605,15 +605,20 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 		// Lat: 8.80 to 9.10, Lng: 38.60 to 38.95
 		whereClauses = append(whereClauses, "ST_Y(b.geom) BETWEEN 8.80 AND 9.10 AND ST_X(b.geom) BETWEEN 38.60 AND 38.95")
 
-		// Add ILIKE condition for EACH term (AND logic)
-		// This ensures every typed word appears somewhere in the name
+		// Build OR condition for all terms (any term can match)
+		// This allows "african uni" to match "African Union"
+		var termClauses []string
 		for i, term := range terms {
-			// $1, $2, etc.
 			placeholder := fmt.Sprintf("$%d", i+1)
-			// Removed c.name and b.description to avoid potential 500 errors if columns are missing or null handling fails
-			clause := fmt.Sprintf("(b.name ILIKE '%%' || %s || '%%')", placeholder)
-			whereClauses = append(whereClauses, clause)
+			// Use ILIKE with % on both sides for partial matching
+			termClause := fmt.Sprintf("(b.name ILIKE '%%' || %s || '%%')", placeholder)
+			termClauses = append(termClauses, termClause)
 			args = append(args, term)
+		}
+
+		// Join all term clauses with OR
+		if len(termClauses) > 0 {
+			whereClauses = append(whereClauses, "("+strings.Join(termClauses, " OR ")+")")
 		}
 
 		// Add limit as the last argument
@@ -761,23 +766,8 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 							name += " (" + nr.Address.Suburb + ")"
 						}
 
-						// Filter out results where the query only matches the address, not the name
-						// This prevents "new" from matching "123 New Street" instead of "New Hotel"
-						queryLower := strings.ToLower(q)
-						nameLower := strings.ToLower(name)
-
-						// Check if query matches the name
-						nameMatches := strings.Contains(nameLower, queryLower)
-
-						// Also check brand and amenity
-						brandMatches := nr.Address.Brand != "" && strings.Contains(strings.ToLower(nr.Address.Brand), queryLower)
-						amenityMatches := nr.Address.Amenity != "" && strings.Contains(strings.ToLower(nr.Address.Amenity), queryLower)
-
-						// Skip only if it doesn't match name, brand, or amenity (pure address match)
-						if !nameMatches && !brandMatches && !amenityMatches {
-							log.Printf("Skipping address-only match: %s (query: %s)", name, q)
-							continue
-						}
+						// No filtering - show all results (businesses, landmarks, streets, etc.)
+						// User wants to see everything, not just businesses
 
 						biz := map[string]interface{}{
 							"id":           fmt.Sprintf("nom-%d", nr.PlaceID),
