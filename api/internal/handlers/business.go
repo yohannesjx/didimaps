@@ -611,7 +611,7 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 			// $1, $2, etc.
 			placeholder := fmt.Sprintf("$%d", i+1)
 			// Removed c.name and b.description to avoid potential 500 errors if columns are missing or null handling fails
-			clause := fmt.Sprintf("(b.name ILIKE '%%' || %s || '%%' OR b.name_am ILIKE '%%' || %s || '%%')", placeholder, placeholder)
+			clause := fmt.Sprintf("(b.name ILIKE '%%' || %s || '%%')", placeholder)
 			whereClauses = append(whereClauses, clause)
 			args = append(args, term)
 		}
@@ -622,7 +622,7 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 
 		query := fmt.Sprintf(`
 			SELECT 
-				b.id, b.name, b.name_am, 
+				b.id, b.name, 
 				ST_Y(b.geom) as lat, ST_X(b.geom) as lng, b.address, b.city, b.status,
 				COALESCE(b.avg_rating, 0), COALESCE(b.review_count, 0),
 				c.name as category_name, c.icon as category_icon
@@ -645,12 +645,12 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 		var businesses []map[string]interface{}
 		for rows.Next() {
 			var id, name, city, status string
-			var nameAm, address, categoryName, categoryIcon sql.NullString
+			var address, categoryName, categoryIcon sql.NullString
 			var lat, lng, avgRating float64
 			var reviewCount int
 
 			err := rows.Scan(
-				&id, &name, &nameAm,
+				&id, &name,
 				&lat, &lng, &address, &city, &status,
 				&avgRating, &reviewCount,
 				&categoryName, &categoryIcon,
@@ -669,9 +669,7 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 				"review_count": reviewCount,
 				"source":       "local",
 			}
-			if nameAm.Valid {
-				biz["name_am"] = nameAm.String
-			}
+			// Removed nameAm usage
 			if address.Valid {
 				biz["address"] = address.String
 			}
