@@ -51,7 +51,20 @@ func main() {
 		return
 	}
 
-	// 3. Fetch Categories Cache
+	// 3. Ensure 'source' column exists in businesses table
+	_, err = didiDB.Exec(`
+		DO $$ 
+		BEGIN 
+			IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='businesses' AND column_name='source') THEN 
+				ALTER TABLE businesses ADD COLUMN source VARCHAR(50) DEFAULT 'user'; 
+			END IF; 
+		END $$;
+	`)
+	if err != nil {
+		log.Fatal("Failed to add source column:", err)
+	}
+
+	// 4. Fetch Categories Cache
 	categories := make(map[string]string) // name -> id
 	rows, err := didiDB.Query("SELECT id, name FROM categories")
 	if err != nil {
