@@ -314,7 +314,7 @@ const getCategoryIcon = (category) => {
     return '📍';
 };
 
-export default function Map({ selectedBusiness, businesses, onMarkerClick, directionsDestination, userLocation, isSidebarVisible, onMapMove }) {
+export default function Map({ selectedBusiness, businesses, onMarkerClick, directionsDestination, userLocation, isSidebarVisible, onMapMove, isCategoryView }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markers = useRef([]);
@@ -524,7 +524,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
 
             markers.current.push(marker);
         });
-    }, [businesses, onMarkerClick]);
+    }, [businesses, onMarkerClick, isCategoryView]);
 
     // Fly to selected business
     useEffect(() => {
