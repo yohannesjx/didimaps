@@ -129,7 +129,7 @@ const getStyle = (mode) => {
         sources: {
             openmaptiles: {
                 type: 'vector',
-                tiles: [window.location.origin + `/api/tiles/{z}/{x}/{y}.pbf?v=2`], // Bump version to force refresh
+                tiles: [window.location.origin + `/api/tiles/{z}/{x}/{y}.pbf?v=3`], // Fresh tiles
                 minzoom: 0,
                 maxzoom: 14,
             },
