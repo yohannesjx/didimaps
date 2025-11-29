@@ -5,44 +5,190 @@
     top: 0;
     left: 0;
     z-index: 0;
-    /* Behind sidebar */
 }
 
-/* Custom Marker Styles */
-.business-marker {
+/* Yandex-style Marker */
+.yandex-marker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    transform: translate(-18px, -18px);
+    /* Center the icon */
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.yandex-marker:hover {
+    z-index: 100 !important;
+    transform: translate(-18px, -22px);
+}
+
+.yandex-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ff6d00;
+    /* Default color */
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    font-size: 18px;
+    color: white;
+    z-index: 2;
+    flex-shrink: 0;
 }
 
-.business-marker:hover {
+.yandex-label {
+    background: white;
+    padding: 6px 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    min-width: 100px;
+    max-width: 160px;
+    z-index: 1;
+    pointer-events: none;
+    /* Let clicks pass through to marker container */
+}
+
+.yandex-name-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+}
+
+.yandex-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: #222;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.yandex-rating {
+    font-size: 12px;
+    color: #555;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: #f0f0f0;
+    padding: 1px 4px;
+    border-radius: 4px;
+}
+
+.yandex-subtitle {
+    font-size: 11px;
+    color: #888;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Map Controls */
+.map-controls-group {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.layer-switcher-container {
+    position: relative;
+}
+
+.map-control-btn {
+    width: 44px;
+    height: 44px;
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.map-control-btn:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.layer-menu {
+    position: absolute;
+    top: 0;
+    right: 55px;
+    background: white;
+    padding: 6px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+    opacity: 0;
+    transform: translateX(10px);
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+.layer-switcher-container:hover .layer-menu {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.layer-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.1s;
+}
+
+.layer-option:hover {
+    background: #f0f2f5;
+}
+
+.layer-option.active {
+    background: #e8f0fe;
+    color: #1a73e8;
+}
+
+.locate-btn {
+    position: absolute;
+    bottom: 120px;
+    right: 20px;
     z-index: 10;
 }
 
-/* Popup Styles */
-.maplibregl-popup-content {
-    border-radius: 12px;
-    padding: 0;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.maplibregl-popup-close-button {
-    padding: 4px 8px;
-    color: #666;
-    font-size: 16px;
-    z-index: 2;
-}
-
-/* Pulsing User Location Marker */
+/* User Location Marker */
 .user-marker {
-    width: 16px;
-    height: 16px;
-    background-color: #4285f4;
+    width: 20px;
+    height: 20px;
+    background-color: #1a73e8;
     border: 3px solid white;
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     z-index: 100;
 }
 
@@ -52,13 +198,12 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    background-color: rgba(66, 133, 244, 0.4);
+    width: 60px;
+    height: 60px;
+    background-color: rgba(26, 115, 232, 0.2);
     border-radius: 50%;
     animation: pulse 2s infinite;
     pointer-events: none;
-    /* Don't block clicks */
     z-index: -1;
 }
 
@@ -74,52 +219,15 @@
     }
 }
 
-/* Map Controls */
-.map-controls-group {
-    position: absolute;
-    top: 20px;
-    right: 10px;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.map-control-btn {
-    width: 40px;
-    height: 40px;
-    background: white;
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-
-.map-control-btn:hover {
-    background-color: #f8f9fa;
-}
-
-.locate-btn {
-    position: absolute;
-    bottom: 110px;
-    right: 10px;
-    z-index: 10;
-    width: 29px;
-    height: 29px;
-    border-radius: 4px;
-    font-size: 16px;
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
-}
-
 /* Mobile Adjustments */
 @media (max-width: 768px) {
     .map-controls-group {
         top: 160px;
-        /* Move down below search/pills on mobile */
+        right: 10px;
+    }
+
+    .locate-btn {
+        right: 10px;
+        bottom: 140px;
     }
 }

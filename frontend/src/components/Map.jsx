@@ -84,11 +84,43 @@ const getStyle = (mode) => {
                         'text-halo-width': 2
                     }
                 },
+                {
+                    id: 'poi-label',
+                    type: 'symbol',
+                    source: 'openmaptiles',
+                    'source-layer': 'poi',
+                    minzoom: 14,
+                    layout: {
+                        'text-field': '{name:latin}',
+                        'text-font': ['Noto Sans Regular'],
+                        'text-size': 11,
+                        'text-anchor': 'top',
+                        'text-offset': [0, 0.5]
+                    },
+                    paint: {
+                        'text-color': '#cccccc',
+                        'text-halo-color': '#000000',
+                        'text-halo-width': 1
+                    }
+                },
             ]
         };
     }
 
     const isDark = mode === 'dark';
+
+    // Yandex-like Colors
+    const colors = {
+        background: isDark ? '#0c0c0c' : '#f2f2f0',
+        water: isDark ? '#1b1b1d' : '#aadaff',
+        landcover: isDark ? '#2a2a2a' : '#e6f0e6', // Greenish tint for land
+        park: isDark ? '#2a2a2a' : '#c8e6c9',      // Distinct green for parks
+        road: isDark ? '#3a3a3a' : '#ffffff',
+        roadBorder: isDark ? '#222' : '#d6d6d6',
+        text: isDark ? '#ffffff' : '#333333',
+        textHalo: isDark ? '#000000' : '#ffffff'
+    };
+
     return {
         version: 8,
         sources: {
@@ -103,28 +135,49 @@ const getStyle = (mode) => {
             {
                 id: 'background',
                 type: 'background',
-                paint: { 'background-color': isDark ? '#0c0c0c' : '#f8f9fa' },
+                paint: { 'background-color': colors.background },
             },
             {
                 id: 'water',
                 type: 'fill',
                 source: 'openmaptiles',
                 'source-layer': 'water',
-                paint: { 'fill-color': isDark ? '#1b1b1d' : '#aadaff' },
+                paint: { 'fill-color': colors.water },
             },
             {
                 id: 'landcover',
                 type: 'fill',
                 source: 'openmaptiles',
                 'source-layer': 'landcover',
-                paint: { 'fill-color': isDark ? '#2a2a2a' : '#e6e6e6', 'fill-opacity': 0.4 },
+                paint: { 'fill-color': colors.landcover },
+            },
+            {
+                id: 'landuse', // Parks etc
+                type: 'fill',
+                source: 'openmaptiles',
+                'source-layer': 'landuse',
+                paint: { 'fill-color': colors.park },
+                filter: ['==', 'class', 'park']
+            },
+            {
+                id: 'roads-casing',
+                type: 'line',
+                source: 'openmaptiles',
+                'source-layer': 'transportation',
+                paint: {
+                    'line-color': colors.roadBorder,
+                    'line-width': { base: 1.2, stops: [[13, 3], [14, 4], [20, 18]] }
+                },
             },
             {
                 id: 'roads',
                 type: 'line',
                 source: 'openmaptiles',
                 'source-layer': 'transportation',
-                paint: { 'line-color': isDark ? '#3a3a3a' : '#ffffff', 'line-width': 2 },
+                paint: {
+                    'line-color': colors.road,
+                    'line-width': { base: 1.2, stops: [[13, 1.5], [14, 2.5], [20, 14]] }
+                },
             },
             {
                 id: '3d-buildings',
@@ -133,7 +186,7 @@ const getStyle = (mode) => {
                 type: 'fill-extrusion',
                 minzoom: 13,
                 paint: {
-                    'fill-extrusion-color': isDark ? '#333' : '#d1d1d1',
+                    'fill-extrusion-color': isDark ? '#333' : '#e8e8e8',
                     'fill-extrusion-height': [
                         'interpolate',
                         ['linear'],
@@ -152,7 +205,7 @@ const getStyle = (mode) => {
                         13.05,
                         ['get', 'render_min_height']
                     ],
-                    'fill-extrusion-opacity': 0.8
+                    'fill-extrusion-opacity': 0.9
                 },
             },
             {
@@ -168,8 +221,8 @@ const getStyle = (mode) => {
                     'text-anchor': 'center'
                 },
                 paint: {
-                    'text-color': isDark ? '#ffffff' : '#333333',
-                    'text-halo-color': isDark ? '#000000' : '#ffffff',
+                    'text-color': colors.text,
+                    'text-halo-color': colors.textHalo,
                     'text-halo-width': 2
                 }
             },
@@ -206,8 +259,8 @@ const getStyle = (mode) => {
                     'text-offset': [0, 0.5]
                 },
                 paint: {
-                    'text-color': isDark ? '#cccccc' : '#444444',
-                    'text-halo-color': isDark ? '#000000' : '#ffffff',
+                    'text-color': isDark ? '#cccccc' : '#555555',
+                    'text-halo-color': colors.textHalo,
                     'text-halo-width': 1
                 }
             },
@@ -371,16 +424,24 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             const icon = getCategoryIcon(categoryName);
 
             el.innerHTML = `
-                <div style="display:flex;flex-direction:column;align-items:center;">
-                    <div style="font-size:28px;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.3));">${icon}</div>
-                    <div style="font-size:11px;font-weight:bold;color:${styleMode === 'dark' ? 'white' : 'black'};text-shadow:0 0 2px ${styleMode === 'dark' ? 'black' : 'white'};margin-top:-5px;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;">
-                        ${business.name}
+                <div class="yandex-marker">
+                    <div class="yandex-icon">
+                        ${icon}
+                    </div>
+                    <div class="yandex-label">
+                        <div class="yandex-name-row">
+                            <span class="yandex-name">${business.name}</span>
+                        </div>
+                        <div class="yandex-rating">
+                            <span>★</span> <span>${business.avg_rating ? business.avg_rating.toFixed(1) : 'New'}</span>
+                        </div>
+                        <div class="yandex-subtitle">
+                            ${business.category?.name || business.category}
+                        </div>
                     </div>
                 </div>
             `;
 
-            el.style.cursor = 'pointer';
-            el.style.transition = 'transform 0.2s';
             el.style.zIndex = '1'; // Ensure text is above other things
 
 
@@ -494,8 +555,6 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         }
     }, [directionsDestination, userLocation]);
 
-    const hasCenteredRef = useRef(false);
-
     // Auto-center on user location when first detected
     useEffect(() => {
         if (userLocation && map.current && !hasCenteredRef.current) {
@@ -533,7 +592,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
 
     const changeStyle = (mode) => {
         setStyleMode(mode);
-        setShowLayerMenu(false);
+        // setShowLayerMenu(false); // No longer needed with CSS hover
         if (map.current) {
             map.current.setStyle(getStyle(mode));
         }
@@ -546,25 +605,21 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             {/* Top Right Controls */}
             <div className="map-controls-group">
                 {/* Layer Switcher */}
-                <div style={{ position: 'relative' }}>
-                    <button
-                        className="map-control-btn"
-                        onClick={() => setShowLayerMenu(!showLayerMenu)}
-                        title="Layers"
-                    >
+                <div className="layer-switcher-container">
+                    <button className="map-control-btn" title="Layers">
                         🗺️
                     </button>
-                    {showLayerMenu && (
-                        <div className="layer-menu" style={{
-                            position: 'absolute', top: '0', right: '50px',
-                            background: 'white', padding: '8px', borderRadius: '8px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '120px'
-                        }}>
-                            <div onClick={() => changeStyle('dark')} style={{ padding: '8px', cursor: 'pointer', borderRadius: '4px', background: styleMode === 'dark' ? '#f0f0f0' : 'transparent' }}>🌑 Dark</div>
-                            <div onClick={() => changeStyle('light')} style={{ padding: '8px', cursor: 'pointer', borderRadius: '4px', background: styleMode === 'light' ? '#f0f0f0' : 'transparent' }}>☀️ Light</div>
-                            <div onClick={() => changeStyle('satellite')} style={{ padding: '8px', cursor: 'pointer', borderRadius: '4px', background: styleMode === 'satellite' ? '#f0f0f0' : 'transparent' }}>🛰️ Satellite</div>
+                    <div className="layer-menu">
+                        <div className={`layer-option ${styleMode === 'light' ? 'active' : ''}`} onClick={() => changeStyle('light')}>
+                            <span>☀️</span> Standard
                         </div>
-                    )}
+                        <div className={`layer-option ${styleMode === 'dark' ? 'active' : ''}`} onClick={() => changeStyle('dark')}>
+                            <span>🌑</span> Dark Mode
+                        </div>
+                        <div className={`layer-option ${styleMode === 'satellite' ? 'active' : ''}`} onClick={() => changeStyle('satellite')}>
+                            <span>🛰️</span> Satellite
+                        </div>
+                    </div>
                 </div>
 
                 {/* 3D Toggle */}
@@ -572,9 +627,8 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
                     className="map-control-btn"
                     onClick={toggle3D}
                     title="Toggle 2D/3D"
-                    style={{ fontSize: '14px', fontWeight: 'bold' }}
                 >
-                    {is3D ? '2D' : '3D'}
+                    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{is3D ? '2D' : '3D'}</span>
                 </button>
             </div>
 
