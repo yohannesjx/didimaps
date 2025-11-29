@@ -643,7 +643,8 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 				b.id, b.name, 
 				ST_Y(b.geom) as lat, ST_X(b.geom) as lng, b.address, b.city, b.status,
 				COALESCE(b.avg_rating, 0), COALESCE(b.review_count, 0),
-				c.name as category_name, c.icon as category_icon
+				c.name as category_name, c.icon as category_icon,
+				COALESCE(b.source, 'local') as source
 			FROM businesses b
 			LEFT JOIN categories c ON b.category_id = c.id
 			WHERE %s
@@ -662,7 +663,7 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 
 		var businesses []map[string]interface{}
 		for rows.Next() {
-			var id, name, city, status string
+			var id, name, city, status, source string
 			var address, categoryName, categoryIcon sql.NullString
 			var lat, lng, avgRating float64
 			var reviewCount int
@@ -672,6 +673,7 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 				&lat, &lng, &address, &city, &status,
 				&avgRating, &reviewCount,
 				&categoryName, &categoryIcon,
+				&source,
 			)
 			if err != nil {
 				continue
@@ -685,7 +687,7 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 				"city":         city,
 				"avg_rating":   avgRating,
 				"review_count": reviewCount,
-				"source":       "local",
+				"source":       source,
 			}
 			// Removed nameAm usage
 			if address.Valid {
