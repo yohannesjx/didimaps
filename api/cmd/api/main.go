@@ -84,6 +84,11 @@ func main() {
 			public.Get("/business/nearby", handlers.GetNearbyBusinesses(database))
 			public.Get("/business/search", handlers.SearchBusinesses(database, cfg))
 			public.Get("/route", handlers.GetRoute(cfg))
+			public.Get("/distance-matrix", handlers.GetDistanceMatrix(cfg))
+		})
+
+		r.Route("/internal", func(ir chi.Router) {
+			ir.Post("/publish", handlers.PublishPOI(database))
 		})
 
 		// Protected endpoints - apply JWT middleware within this group

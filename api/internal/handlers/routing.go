@@ -12,9 +12,9 @@ import (
 )
 
 type RouteResponse struct {
-	Code   string      `json:"code"`
-	Routes []Route     `json:"routes,omitempty"`
-	Error  string      `json:"error,omitempty"`
+	Code   string  `json:"code"`
+	Routes []Route `json:"routes,omitempty"`
+	Error  string  `json:"error,omitempty"`
 }
 
 type Route struct {
@@ -130,6 +130,50 @@ func MatchGPS(cfg *config.Config) http.HandlerFunc {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			jsonError(w, "failed to read matching response", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(resp.StatusCode)
+		w.Write(body)
+	}
+}
+
+func GetDistanceMatrix(cfg *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		coords := r.URL.Query().Get("coords")
+		if coords == "" {
+			jsonError(w, "coords parameter required", http.StatusBadRequest)
+			return
+		}
+
+		// OSRM Table service: /table/v1/driving/{coordinates}
+		// coordinates: lng,lat;lng,lat;...
+		// The input 'coords' is likely lat,lng;lat,lng. We need to flip them.
+
+		parts := strings.Split(coords, ";")
+		var osrmCoords []string
+		for _, part := range parts {
+			latlng := strings.Split(part, ",")
+			if len(latlng) != 2 {
+				jsonError(w, "invalid coordinate format", http.StatusBadRequest)
+				return
+			}
+			osrmCoords = append(osrmCoords, fmt.Sprintf("%s,%s", latlng[1], latlng[0]))
+		}
+
+		osrmURL := fmt.Sprintf("%s/table/v1/driving/%s", cfg.OSRMHost, strings.Join(osrmCoords, ";"))
+
+		resp, err := http.Get(osrmURL)
+		if err != nil {
+			jsonError(w, "distance matrix service unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			jsonError(w, "failed to read response", http.StatusInternalServerError)
 			return
 		}
 
