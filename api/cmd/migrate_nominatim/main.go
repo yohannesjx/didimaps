@@ -77,7 +77,14 @@ func main() {
 		categories[strings.ToLower(name)] = id
 	}
 
-	// 4. Migrate
+	// 5. Clear existing imported data
+	fmt.Println("Clearing existing Nominatim data...")
+	_, err = didiDB.Exec("DELETE FROM businesses WHERE source = 'nominatim'")
+	if err != nil {
+		log.Fatal("Failed to clear old data:", err)
+	}
+
+	// 6. Migrate
 	fmt.Println("Starting migration...")
 
 	// Query Nominatim Data
@@ -90,7 +97,7 @@ func main() {
 			class, 
 			type, 
 			name->'name' as name,
-			ST_AsText(geometry) as geom,
+			ST_AsText(ST_Centroid(geometry)) as geom,
 			address->'city' as city,
 			address->'street' as street
 		FROM placex 
