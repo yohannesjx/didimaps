@@ -473,10 +473,11 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             // Use custom icon based on category
             const categoryName = business.category?.name || business.category;
             const icon = getCategoryIcon(categoryName);
+            const markerColor = isCategoryView ? '#d32f2f' : '#ff6d00';
 
             el.innerHTML = `
                 <div class="yandex-marker" style="display:flex;align-items:center;gap:6px;transform:translate(-18px,-18px);cursor:pointer;">
-                    <div class="yandex-icon" style="width:36px;height:36px;border-radius:50%;background:#ff6d00;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
+                    <div class="yandex-icon" style="width:36px;height:36px;border-radius:50%;background:${markerColor};border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
                         ${icon}
                     </div>
                     <div class="yandex-label" style="background:white;padding:6px 10px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;flex-direction:column;min-width:100px;">

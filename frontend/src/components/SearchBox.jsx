@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import './SearchBox.css?v=2';
 
-export default function SearchBox({ query, onSearch, onProfileClick, suggestions = [], onSelectSuggestion, onAddBusiness, loading }) {
+export default function SearchBox({ query, onSearch, onProfileClick, suggestions = [], onSelectSuggestion, onAddBusiness, loading, categories = [], onSelectCategory }) {
     const [activeCategory, setActiveCategory] = useState('all');
     const [isFocused, setIsFocused] = useState(false);
 
-    const categories = [
+    const pillCategories = [
         { id: 'food', label: 'Good place', icon: '🏆' },
         { id: 'lunch', label: 'Business lunch', icon: '' },
         { id: 'chains', label: 'Chains', icon: '' },
@@ -19,6 +19,9 @@ export default function SearchBox({ query, onSearch, onProfileClick, suggestions
     ];
 
     const displayItems = query ? suggestions : recentSearches;
+
+    // Find matching category
+    const matchedCategory = query && categories.find(c => c.name.toLowerCase().includes(query.toLowerCase()));
 
     return (
         <>
@@ -53,6 +56,26 @@ export default function SearchBox({ query, onSearch, onProfileClick, suggestions
                         {/* List Items */}
                         {!loading && (
                             <div className="search-list">
+                                {/* Matched Category - Top Result */}
+                                {matchedCategory && (
+                                    <div
+                                        className="suggestion-item category-match"
+                                        onClick={() => {
+                                            onSelectCategory(matchedCategory);
+                                            setIsFocused(false);
+                                        }}
+                                        style={{ borderLeft: '4px solid #1a73e8', background: '#f8f9fa' }}
+                                    >
+                                        <span className="suggestion-icon" style={{ fontSize: '20px' }}>{matchedCategory.icon || '🔍'}</span>
+                                        <div className="suggestion-text">
+                                            <div className="suggestion-name" style={{ color: '#1a73e8', fontWeight: 'bold' }}>
+                                                {matchedCategory.name}
+                                            </div>
+                                            <div className="suggestion-address">Category • See all places</div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {displayItems.slice(0, 6).map((item) => (
                                     <div
                                         key={item.id}
@@ -94,7 +117,7 @@ export default function SearchBox({ query, onSearch, onProfileClick, suggestions
 
             {/* Floating Category Pills */}
             <div className="category-pills-floating">
-                {categories.map((cat) => (
+                {pillCategories.map((cat) => (
                     <button
                         key={cat.id}
                         className={`category-pill ${activeCategory === cat.id ? 'active' : ''}`}

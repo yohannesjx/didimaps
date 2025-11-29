@@ -27,6 +27,9 @@ function App() {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
   // Get User Location
   useEffect(() => {
     if (navigator.geolocation) {
@@ -42,33 +45,47 @@ function App() {
         }
       );
     }
+    fetchCategories();
   }, []);
 
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/categories');
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories', err);
+    }
+  };
+
   // Fetch businesses from API
-  // Fetch businesses from API
-  const fetchBusinesses = async (lat, lng, zoom = 15) => {
+  const fetchBusinesses = async (lat, lng, zoom = 15, categoryId = null) => {
     setLoading(true);
     try {
       let url;
-      if (searchQuery) {
+      if (categoryId) {
+        // Fetch by Category
+        url = `/api/business/search?category_id=${categoryId}&lat=${lat}&lng=${lng}`;
+      } else if (searchQuery) {
         // Hybrid Search (Local + Nominatim)
         url = `/api/business/search?q=${encodeURIComponent(searchQuery)}&lat=${lat}&lng=${lng}`;
       } else {
-        // Dynamic LOD: Adjust radius and limit based on zoom
+        // ... existing logic ...
         let radius = 5000;
         let limit = 50;
 
         if (zoom >= 16) {
-          radius = 1000; // Close up: Small radius, high detail
+          radius = 1000;
           limit = 100;
         } else if (zoom >= 14) {
-          radius = 5000; // Medium: Standard
+          radius = 5000;
           limit = 50;
         } else {
-          radius = 20000; // Far out: Large radius, only top results
+          radius = 20000;
           limit = 20;
         }
-        // Nearby Search (Local only)
         url = `/api/business/nearby?lat=${lat}&lng=${lng}&radius=${radius}&limit=${limit}`;
       }
 
@@ -87,10 +104,14 @@ function App() {
   // Initial fetch and search listener
   useEffect(() => {
     const debounce = setTimeout(() => {
-      fetchBusinesses(userLocation.lat, userLocation.lng, mapZoom);
+      // If a category is selected, don't auto-fetch based on query unless query changes significantly?
+      // Actually, if selectedCategory is set, we probably want to stick to it until search query changes.
+      if (!selectedCategory) {
+        fetchBusinesses(userLocation.lat, userLocation.lng, mapZoom);
+      }
     }, 500);
     return () => clearTimeout(debounce);
-  }, [searchQuery, userLocation]);
+  }, [searchQuery, userLocation, selectedCategory]); // Added selectedCategory dependency
 
   useEffect(() => {
     // Listen for directions requests from cards
@@ -102,6 +123,13 @@ function App() {
     window.addEventListener('requestDirections', handleDirectionsRequest);
     return () => window.removeEventListener('requestDirections', handleDirectionsRequest);
   }, []);
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setSearchQuery(category.name); // Optional: fill search bar
+    fetchBusinesses(mapCenter.lat, mapCenter.lng, mapZoom, category.id);
+    setIsSidebarVisible(false); // Hide sidebar to show map results
+  };
 
   // Show sidebar when business is selected
   useEffect(() => {
@@ -173,9 +201,14 @@ function App() {
       <SearchBox
         query={searchQuery}
         suggestions={businesses}
+        categories={categories}
         loading={loading}
-        onSearch={(q) => setSearchQuery(q)}
+        onSearch={(q) => {
+          setSearchQuery(q);
+          setSelectedCategory(null);
+        }}
         onSelectSuggestion={handleSuggestionSelect}
+        onSelectCategory={handleCategorySelect}
         onAddBusiness={() => setIsAddBusinessOpen(true)}
         onProfileClick={() => {
           if (isAuthenticated) {
@@ -219,6 +252,7 @@ function App() {
         directionsDestination={directionsDestination}
         userLocation={userLocation}
         isSidebarVisible={isSidebarVisible}
+        isCategoryView={!!selectedCategory}
         onMapMove={handleMapMove}
       />
 
