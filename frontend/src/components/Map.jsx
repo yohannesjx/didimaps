@@ -112,13 +112,15 @@ const getStyle = (mode) => {
     // Yandex-like Colors
     // Enhanced Vibrant Colors
     const colors = {
-        background: isDark ? '#0c0c0c' : '#E5E5E5', // Darker grey background to make white roads pop
-        water: isDark ? '#1b1b1d' : '#29B6F6',       // Bright, vibrant blue
-        landcover: isDark ? '#2a2a2a' : '#E8F5E9',   // Subtle green tint
-        park: isDark ? '#2a2a2a' : '#66BB6A',        // Strong, vibrant green
-        road: isDark ? '#3a3a3a' : '#FFFFFF',        // Pure white
-        roadBorder: isDark ? '#222' : '#9E9E9E',     // Darker grey for sharp contrast
-        text: isDark ? '#ffffff' : '#212121',        // Almost black text
+        background: isDark ? '#0c0c0c' : '#F5F5F5', // Light grey background
+        water: isDark ? '#1b1b1d' : '#4FC3F7',       // Nice Water Blue
+        landcover: isDark ? '#2a2a2a' : '#E8F5E9',   // Very subtle green tint
+        park: isDark ? '#2a2a2a' : '#81C784',        // Nice Tinted Green
+        road: isDark ? '#3a3a3a' : '#E0E0E0',        // Grey Roads
+        roadBorder: isDark ? '#222' : '#BDBDBD',     // Darker Grey Border
+        building: isDark ? '#333' : '#EEEEEE',       // Light Grey Buildings
+        rail: isDark ? '#555' : '#9E9E9E',           // Train Lines
+        text: isDark ? '#ffffff' : '#212121',
         textHalo: isDark ? '#000000' : '#ffffff'
     };
 
@@ -161,10 +163,23 @@ const getStyle = (mode) => {
                 filter: ['==', 'class', 'park']
             },
             {
+                id: 'railways',
+                type: 'line',
+                source: 'openmaptiles',
+                'source-layer': 'transportation',
+                filter: ['==', 'class', 'rail'],
+                paint: {
+                    'line-color': colors.rail,
+                    'line-width': 2,
+                    'line-dasharray': [2, 2]
+                }
+            },
+            {
                 id: 'roads-casing',
                 type: 'line',
                 source: 'openmaptiles',
                 'source-layer': 'transportation',
+                filter: ['!=', 'class', 'rail'], // Exclude rails from generic roads
                 paint: {
                     'line-color': colors.roadBorder,
                     'line-width': { base: 1.2, stops: [[13, 3], [14, 4], [20, 18]] }
@@ -175,6 +190,7 @@ const getStyle = (mode) => {
                 type: 'line',
                 source: 'openmaptiles',
                 'source-layer': 'transportation',
+                filter: ['!=', 'class', 'rail'], // Exclude rails from generic roads
                 paint: {
                     'line-color': colors.road,
                     'line-width': { base: 1.2, stops: [[13, 1.5], [14, 2.5], [20, 14]] }
@@ -187,7 +203,7 @@ const getStyle = (mode) => {
                 type: 'fill-extrusion',
                 minzoom: 13,
                 paint: {
-                    'fill-extrusion-color': isDark ? '#333' : '#e8e8e8',
+                    'fill-extrusion-color': colors.building,
                     'fill-extrusion-height': [
                         'interpolate',
                         ['linear'],
