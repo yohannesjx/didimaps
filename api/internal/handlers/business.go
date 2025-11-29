@@ -620,6 +620,20 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 		args = append(args, limit)
 		limitPlaceholder := fmt.Sprintf("$%d", len(args))
 
+		// Get user location for proximity sorting
+		latStr := r.URL.Query().Get("lat")
+		lngStr := r.URL.Query().Get("lng")
+		userLat, _ := strconv.ParseFloat(latStr, 64)
+		userLng, _ := strconv.ParseFloat(lngStr, 64)
+
+		// If user location is provided, sort by distance; otherwise sort by rating
+		var orderBy string
+		if userLat != 0 && userLng != 0 {
+			orderBy = fmt.Sprintf("ST_Distance(b.geom, ST_SetSRID(ST_MakePoint(%f, %f), 4326)) ASC", userLng, userLat)
+		} else {
+			orderBy = "b.avg_rating DESC"
+		}
+
 		query := fmt.Sprintf(`
 			SELECT 
 				b.id, b.name, 
@@ -629,9 +643,9 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 			FROM businesses b
 			LEFT JOIN categories c ON b.category_id = c.id
 			WHERE %s
-			ORDER BY b.avg_rating DESC
+			ORDER BY %s
 			LIMIT %s
-		`, strings.Join(whereClauses, " AND "), limitPlaceholder)
+		`, strings.Join(whereClauses, " AND "), orderBy, limitPlaceholder)
 
 		rows, err := db.QueryContext(r.Context(), query, args...)
 
@@ -691,9 +705,10 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 		// Only if we have few results
 		if len(businesses) < 10 {
 			// Search with "Addis Ababa" appended to query for context
-			// We removed the strict viewbox because it was causing 0 results
 			searchQuery := q + " Addis Ababa"
-			nominatimURL := fmt.Sprintf("%s/search?q=%s&format=json&limit=10&addressdetails=1", cfg.GeocoderHost, url.QueryEscape(searchQuery))
+			nominatimURL := fmt.Sprintf("%s/search?q=%s&format=json&limit=20&addressdetails=1", cfg.GeocoderHost, url.QueryEscape(searchQuery))
+			// Add viewbox to bias results toward Addis (but not strictly bound)
+			nominatimURL += "&viewbox=38.60,8.80,38.95,9.10&bounded=0"
 
 			resp, err := http.Get(nominatimURL)
 			if err == nil {
@@ -743,6 +758,21 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 						// Append specific branch info if available
 						if nr.Address.Suburb != "" && !strings.Contains(name, nr.Address.Suburb) {
 							name += " (" + nr.Address.Suburb + ")"
+						}
+
+						// Filter out results where the query only matches the address, not the name
+						// This prevents "new" from matching "123 New Street" instead of "New Hotel"
+						queryLower := strings.ToLower(q)
+						nameLower := strings.ToLower(name)
+						displayLower := strings.ToLower(nr.DisplayName)
+
+						// Check if query matches the name (good) or only the address (bad)
+						nameMatches := strings.Contains(nameLower, queryLower)
+						addressOnlyMatch := !nameMatches && strings.Contains(displayLower, queryLower)
+
+						// Skip if it's only an address match
+						if addressOnlyMatch {
+							continue
 						}
 
 						biz := map[string]interface{}{
