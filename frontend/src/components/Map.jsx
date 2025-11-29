@@ -291,6 +291,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
     const map = useRef(null);
     const markers = useRef([]);
     const userMarkerRef = useRef(null);
+    const hasCenteredRef = useRef(false);
     const [styleMode, setStyleMode] = useState('dark');
     const [is3D, setIs3D] = useState(true);
     const [showLayerMenu, setShowLayerMenu] = useState(false);
