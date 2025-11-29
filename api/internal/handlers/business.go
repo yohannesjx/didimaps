@@ -692,11 +692,10 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 		// Call Nominatim for broader search
 		// Only if we have few results
 		if len(businesses) < 10 {
-			// Search Addis Ababa bounds
-			// Correct Order: minlon, minlat, maxlon, maxlat
-			// Addis: 38.60 (West), 8.80 (South), 38.95 (East), 9.10 (North)
-			nominatimURL := fmt.Sprintf("%s/search?q=%s&format=json&limit=10&addressdetails=1", cfg.GeocoderHost, url.QueryEscape(q))
-			nominatimURL += "&viewbox=38.60,8.80,38.95,9.10&bounded=1" // bounded=1 enforces the viewbox
+			// Search with "Addis Ababa" appended to query for context
+			// We removed the strict viewbox because it was causing 0 results
+			searchQuery := q + " Addis Ababa"
+			nominatimURL := fmt.Sprintf("%s/search?q=%s&format=json&limit=10&addressdetails=1", cfg.GeocoderHost, url.QueryEscape(searchQuery))
 
 			resp, err := http.Get(nominatimURL)
 			if err == nil {
