@@ -110,6 +110,10 @@ function App() {
       // Actually, if selectedCategory is set, we probably want to stick to it until search query changes.
       if (!selectedCategory) {
         fetchBusinesses(userLocation.lat, userLocation.lng, mapZoom);
+        // Open sidebar when user is actively searching
+        if (searchQuery && searchQuery.length > 0) {
+          setIsSidebarVisible(true);
+        }
       }
     }, 500);
     return () => clearTimeout(debounce);
