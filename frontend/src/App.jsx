@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Map from './components/Map';
 import BusinessSidebar from './components/BusinessSidebar';
+import BusinessDetails from './components/BusinessDetails';
 import SearchBox from './components/SearchBox';
 import LoginModal from './components/LoginModal';
 import ProfileSidebar from './components/ProfileSidebar';
@@ -244,12 +245,20 @@ function App() {
             businesses={businesses}
             selectedBusiness={selectedBusiness}
             onSelectBusiness={(business) => {
+              ignoreMapMoveRef.current = true;
               setSelectedBusiness(business);
-              setIsSidebarVisible(true);
             }}
             isVisible={isSidebarVisible && !isProfileOpen}
             onClose={() => setIsSidebarVisible(false)}
           />
+
+          {/* Details Panel Overlay */}
+          {selectedBusiness && isSidebarVisible && !isProfileOpen && (
+            <BusinessDetails
+              business={selectedBusiness}
+              onClose={() => setSelectedBusiness(null)}
+            />
+          )}
 
           <ProfileSidebar
             isOpen={isProfileOpen}
