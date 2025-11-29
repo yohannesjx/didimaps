@@ -314,7 +314,24 @@ const getCategoryIcon = (category) => {
     return '📍';
 };
 
+const getCategoryColor = (category) => {
+    if (!category) return '#757575'; // Default Grey
+    const cat = category.toLowerCase();
+    if (cat.includes('bank') || cat.includes('finance') || cat.includes('atm')) return '#1a73e8'; // Blue
+    if (cat.includes('hotel') || cat.includes('lodging')) return '#e91e63'; // Pink
+    if (cat.includes('restaurant') || cat.includes('food') || cat.includes('dining')) return '#ff6d00'; // Orange
+    if (cat.includes('cafe') || cat.includes('coffee')) return '#ef6c00'; // Dark Orange
+    if (cat.includes('hospital') || cat.includes('clinic') || cat.includes('pharmacy')) return '#d32f2f'; // Red
+    if (cat.includes('park') || cat.includes('garden')) return '#2e7d32'; // Green
+    if (cat.includes('shop') || cat.includes('store') || cat.includes('mall')) return '#0288d1'; // Light Blue
+    if (cat.includes('school') || cat.includes('university') || cat.includes('education')) return '#546e7a'; // Blue Grey
+    if (cat.includes('gym') || cat.includes('fitness')) return '#ffca28'; // Amber
+    if (cat.includes('bar') || cat.includes('club')) return '#9c27b0'; // Purple
+    return '#757575';
+};
+
 export default function Map({ selectedBusiness, businesses, onMarkerClick, directionsDestination, userLocation, isSidebarVisible, onMapMove, isCategoryView }) {
+    // ... (refs and state)
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markers = useRef([]);
@@ -336,7 +353,6 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         if (map.current) return;
 
         map.current = new maplibregl.Map({
-            // ... (init options)
             container: mapContainer.current,
             style: getStyle('light'),
             center: [38.7578, 8.9806],
@@ -347,7 +363,8 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             attributionControl: false,
         });
 
-        map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+        // Add standard navigation control (zoom + compass)
+        map.current.addControl(new maplibregl.NavigationControl({ showCompass: true, showZoom: false }), 'bottom-right');
 
         // Handle Zoom for LOD (Level of Detail)
         const handleZoom = () => {
@@ -366,9 +383,6 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         };
         map.current.on('zoom', handleZoom);
         map.current.on('moveend', handleZoom); // Also check on move end
-
-
-
 
         // Handle window resize to adjust padding dynamically
         const handleResize = () => {
@@ -481,7 +495,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             // Use custom icon based on category
             const categoryName = business.category?.name || business.category;
             const icon = getCategoryIcon(categoryName);
-            const markerColor = isCategoryView ? '#d32f2f' : '#ff6d00';
+            const markerColor = getCategoryColor(categoryName);
 
             el.innerHTML = `
                 <div class="yandex-marker" style="display:flex;align-items:center;gap:6px;transform:translate(-18px,-18px);cursor:pointer;">
@@ -691,6 +705,21 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
                     title="Toggle 2D/3D"
                 >
                     <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{is3D ? '2D' : '3D'}</span>
+                </button>
+
+                <div className="controls-separator" />
+
+                {/* Rotate Button */}
+                <button
+                    className="map-control-btn"
+                    onClick={() => {
+                        if (map.current) {
+                            map.current.easeTo({ bearing: map.current.getBearing() - 45, duration: 500 });
+                        }
+                    }}
+                    title="Rotate Map"
+                >
+                    🔄
                 </button>
 
                 <div className="controls-separator" />

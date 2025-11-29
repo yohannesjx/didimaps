@@ -15,7 +15,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('search'); // search, directions
   const [directionsDestination, setDirectionsDestination] = useState(null);
-  const [userLocation, setUserLocation] = useState({ lat: 9.0000, lng: 38.7500 }); // Default center
+  const [userLocation, setUserLocation] = useState(null); // Wait for real location
   const [mapCenter, setMapCenter] = useState({ lat: 9.0000, lng: 38.7500 });
   const [mapZoom, setMapZoom] = useState(15);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Hidden by default
