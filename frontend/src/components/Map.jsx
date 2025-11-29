@@ -112,13 +112,13 @@ const getStyle = (mode) => {
     // Yandex-like Colors
     // Enhanced Vibrant Colors
     const colors = {
-        background: isDark ? '#0c0c0c' : '#F3F4F6', // Cleaner grey-blueish white
-        water: isDark ? '#1b1b1d' : '#89CFF0',       // Vibrant blue
-        landcover: isDark ? '#2a2a2a' : '#E8F5E9',   // Light green tint
-        park: isDark ? '#2a2a2a' : '#A5D6A7',        // Vibrant green
-        road: isDark ? '#3a3a3a' : '#FFFFFF',        // White
-        roadBorder: isDark ? '#222' : '#CFD8DC',     // Blue-grey border
-        text: isDark ? '#ffffff' : '#333333',
+        background: isDark ? '#0c0c0c' : '#E5E5E5', // Darker grey background to make white roads pop
+        water: isDark ? '#1b1b1d' : '#29B6F6',       // Bright, vibrant blue
+        landcover: isDark ? '#2a2a2a' : '#E8F5E9',   // Subtle green tint
+        park: isDark ? '#2a2a2a' : '#66BB6A',        // Strong, vibrant green
+        road: isDark ? '#3a3a3a' : '#FFFFFF',        // Pure white
+        roadBorder: isDark ? '#222' : '#9E9E9E',     // Darker grey for sharp contrast
+        text: isDark ? '#ffffff' : '#212121',        // Almost black text
         textHalo: isDark ? '#000000' : '#ffffff'
     };
 
@@ -448,18 +448,18 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
             const icon = getCategoryIcon(categoryName);
 
             el.innerHTML = `
-                <div class="yandex-marker">
-                    <div class="yandex-icon">
+                <div class="yandex-marker" style="display:flex;align-items:center;gap:6px;transform:translate(-18px,-18px);cursor:pointer;">
+                    <div class="yandex-icon" style="width:36px;height:36px;border-radius:50%;background:#ff6d00;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
                         ${icon}
                     </div>
-                    <div class="yandex-label">
+                    <div class="yandex-label" style="background:white;padding:6px 10px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;flex-direction:column;min-width:100px;">
                         <div class="yandex-name-row">
-                            <span class="yandex-name">${business.name}</span>
+                            <span class="yandex-name" style="font-weight:600;font-size:13px;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${business.name}</span>
                         </div>
-                        <div class="yandex-rating">
+                        <div class="yandex-rating" style="font-size:12px;color:#555;display:flex;align-items:center;gap:2px;">
                             <span>★</span> <span>${business.avg_rating ? business.avg_rating.toFixed(1) : 'New'}</span>
                         </div>
-                        <div class="yandex-subtitle">
+                        <div class="yandex-subtitle" style="font-size:11px;color:#888;">
                             ${business.category?.name || business.category}
                         </div>
                     </div>
