@@ -64,17 +64,24 @@ function App() {
     }
   };
 
+  // Use ref to access latest query inside closures (like fetchBusinesses called from map events)
+  const searchQueryRef = useRef('');
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
+
   // Fetch businesses from API
   const fetchBusinesses = async (lat, lng, zoom = 15, categoryId = null, queryOverride = null) => {
-    console.log('fetchBusinesses called:', { lat, lng, zoom, categoryId, queryOverride, searchQuery });
+    const currentQuery = queryOverride || searchQueryRef.current || '';
+    console.log('fetchBusinesses called:', { lat, lng, zoom, categoryId, queryOverride, currentQuery });
+
     setLoading(true);
     try {
       let url;
       if (categoryId) {
-        const q = queryOverride || searchQuery || '';
-        url = `/api/business/search?category_id=${categoryId}&lat=${lat}&lng=${lng}&q=${encodeURIComponent(q)}`;
-      } else if (searchQuery) {
-        url = `/api/business/search?q=${encodeURIComponent(searchQuery)}&lat=${lat}&lng=${lng}`;
+        url = `/api/business/search?category_id=${categoryId}&lat=${lat}&lng=${lng}&q=${encodeURIComponent(currentQuery)}`;
+      } else if (currentQuery) {
+        url = `/api/business/search?q=${encodeURIComponent(currentQuery)}&lat=${lat}&lng=${lng}`;
       } else {
         let radius = 5000;
         let limit = 50;
