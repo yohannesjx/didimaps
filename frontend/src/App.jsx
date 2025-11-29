@@ -128,7 +128,7 @@ function App() {
     setSelectedCategory(category);
     setSearchQuery(category.name); // Optional: fill search bar
     fetchBusinesses(mapCenter.lat, mapCenter.lng, mapZoom, category.id);
-    setIsSidebarVisible(false); // Hide sidebar to show map results
+    setIsSidebarVisible(true); // Show sidebar to show map results
   };
 
   // Show sidebar when business is selected

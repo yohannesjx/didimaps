@@ -28,7 +28,11 @@ export default function SearchBox({ query, onSearch, onProfileClick, suggestions
             {/* Floating Search Box */}
             <div className={`search-box-floating ${isFocused ? 'focused' : ''}`}>
                 <div className="search-input-container">
-                    <span className="search-icon">📍</span>
+                    {loading ? (
+                        <span className="search-icon spinner">↻</span>
+                    ) : (
+                        <span className="search-icon">📍</span>
+                    )}
                     <input
                         type="text"
                         className="search-input-main"
