@@ -157,6 +157,14 @@ function App() {
     setMapCenter({ lat: business.lat, lng: business.lng });
     setMapZoom(16);
     setIsSidebarVisible(true);
+
+    // Ensure the selected business is in the list so sidebar shows it
+    setBusinesses(prev => {
+      if (prev.find(b => b.id === business.id)) {
+        return prev;
+      }
+      return [business, ...prev];
+    });
   };
 
   const handleMapMove = ({ lat, lng, zoom }) => {

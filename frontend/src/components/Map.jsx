@@ -324,6 +324,14 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
     const [is3D, setIs3D] = useState(false);
     const [showLayerMenu, setShowLayerMenu] = useState(false);
 
+    // Ref to hold the latest onMapMove callback
+    const onMapMoveRef = useRef(onMapMove);
+
+    // Update ref when prop changes
+    useEffect(() => {
+        onMapMoveRef.current = onMapMove;
+    }, [onMapMove]);
+
     useEffect(() => {
         if (map.current) return;
 
@@ -376,10 +384,10 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
 
         // Track map movement
         map.current.on('moveend', () => {
-            if (onMapMove) {
+            if (onMapMoveRef.current) {
                 const center = map.current.getCenter();
                 const zoom = map.current.getZoom();
-                onMapMove({ lat: center.lat, lng: center.lng, zoom: zoom });
+                onMapMoveRef.current({ lat: center.lat, lng: center.lng, zoom: zoom });
             }
         });
 
