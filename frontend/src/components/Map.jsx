@@ -519,52 +519,84 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         if (!map.current) return;
 
         const addLayers = () => {
+            // Generate a white circle icon for the background
+            if (!map.current.hasImage('circle-bg')) {
+                const width = 64; // High res for crispness
+                const height = 64;
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+
+                // Draw white circle
+                ctx.beginPath();
+                ctx.arc(width / 2, height / 2, width / 2 - 2, 0, 2 * Math.PI);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+
+                // Add border (optional, maybe just white is enough if we color it? 
+                // Actually, we want the ICON to be colored. 
+                // MapLibre icon-color tints the WHOLE image (alpha mask).
+                // So we need a WHITE circle to tint it.
+                // But we also want a white border?
+                // Or we can make the circle slightly smaller and add a white stroke?
+                // If we use SDF: 'sdf': true. Then we can use icon-color and icon-halo-color.
+
+                const imageData = ctx.getImageData(0, 0, width, height);
+                map.current.addImage('circle-bg', imageData, { sdf: true });
+            }
+
             if (!map.current.getSource('my-places')) {
                 map.current.addSource('my-places', {
                     type: 'geojson',
                     data: { type: 'FeatureCollection', features: [] }
                 });
 
-                // Circle background for the icon
+                // Single Symbol Layer for Icon + Background
+                // This ensures they hide/show together based on collision
                 map.current.addLayer({
-                    id: 'my-places-circle',
-                    type: 'circle',
-                    source: 'my-places',
-                    paint: {
-                        'circle-radius': 14,
-                        'circle-color': ['get', 'color'],
-                        'circle-stroke-width': 2,
-                        'circle-stroke-color': '#ffffff',
-                        'circle-opacity': 0.9
-                    }
-                });
-
-                // Icon (Emoji)
-                map.current.addLayer({
-                    id: 'my-places-icon',
+                    id: 'my-places-symbol',
                     type: 'symbol',
                     source: 'my-places',
                     layout: {
-                        'text-field': ['get', 'icon'],
-                        'text-size': 16,
-                        'text-allow-overlap': true,
-                        'text-anchor': 'center'
+                        'icon-image': 'circle-bg',
+                        'icon-size': 0.4, // Smaller size (approx 25px)
+                        'icon-allow-overlap': false, // PREVENT CLUSTERING/OVERLAP
+                        'icon-ignore-placement': false,
+                        'icon-padding': 2, // Space between icons
+
+                        'text-field': ['get', 'icon'], // The Emoji
+                        'text-size': 14, // Smaller emoji
+                        'text-allow-overlap': false, // Hide text if it overlaps
+                        'text-ignore-placement': false,
+                        'text-offset': [0, 0], // Center on icon
+                        'text-anchor': 'center',
+
+                        'symbol-sort-key': ['get', 'rating'] // Show higher rated places first
+                    },
+                    paint: {
+                        'icon-color': ['get', 'color'], // Tint the circle
+                        'icon-halo-color': '#ffffff', // White border
+                        'icon-halo-width': 2,
+                        'text-color': '#ffffff' // Emoji color (might not affect standard emojis much, but good practice)
                     }
                 });
 
                 // Label (Name) - Only visible at higher zoom levels
+                // We make this a separate layer so names can hide while icons stay
                 map.current.addLayer({
                     id: 'my-places-label',
                     type: 'symbol',
                     source: 'my-places',
-                    minzoom: 14,
+                    minzoom: 15, // Only show names when zoomed in
                     layout: {
                         'text-field': ['get', 'name'],
                         'text-font': ['Noto Sans Regular'],
-                        'text-size': 12,
-                        'text-offset': [0, 1.5],
+                        'text-size': 11,
+                        'text-offset': [0, 1.8],
                         'text-anchor': 'top',
-                        'text-max-width': 12
+                        'text-max-width': 12,
+                        'text-optional': true // Hide label if it clashes with other labels
                     },
                     paint: {
                         'text-color': '#333333',
@@ -574,9 +606,8 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
                 });
 
                 // Handle Clicks
-                map.current.on('click', 'my-places-circle', (e) => {
+                map.current.on('click', 'my-places-symbol', (e) => {
                     const feature = e.features[0];
-                    // Reconstruct business object from properties
                     const business = {
                         id: feature.properties.id,
                         name: feature.properties.name,
@@ -589,10 +620,10 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
                 });
 
                 // Cursor pointer
-                map.current.on('mouseenter', 'my-places-circle', () => {
+                map.current.on('mouseenter', 'my-places-symbol', () => {
                     map.current.getCanvas().style.cursor = 'pointer';
                 });
-                map.current.on('mouseleave', 'my-places-circle', () => {
+                map.current.on('mouseleave', 'my-places-symbol', () => {
                     map.current.getCanvas().style.cursor = '';
                 });
             }
