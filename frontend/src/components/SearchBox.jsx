@@ -92,7 +92,10 @@ export default function SearchBox({ query, onSearch, onProfileClick, suggestions
                                         <span className="suggestion-icon">{item.type === 'recent' ? '🕒' : '📍'}</span>
                                         <div className="suggestion-text">
                                             <div className="suggestion-name">{item.name}</div>
-                                            <div className="suggestion-address">{item.address || item.city}</div>
+                                            <div className="suggestion-address">
+                                                {item.address || item.city}
+                                                {item.source === 'nominatim' && <span style={{ marginLeft: '6px', fontSize: '10px', background: '#e0e0e0', padding: '2px 4px', borderRadius: '4px', color: '#555' }}>🌍 Global</span>}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
