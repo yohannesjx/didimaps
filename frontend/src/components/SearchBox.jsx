@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './SearchBox.css?v=2';
 
-export default function SearchBox({ query, onSearch, onProfileClick, suggestions = [], onSelectSuggestion }) {
+export default function SearchBox({ query, onSearch, onProfileClick, suggestions = [], onSelectSuggestion, onAddBusiness }) {
     const [activeCategory, setActiveCategory] = useState('all');
     const [isFocused, setIsFocused] = useState(false);
 
@@ -81,7 +81,7 @@ export default function SearchBox({ query, onSearch, onProfileClick, suggestions
                                     </div>
                                 </div>
                                 <div className="add-business-actions">
-                                    <button className="pill-btn primary">Add your business</button>
+                                    <button className="pill-btn primary" onClick={onAddBusiness}>Add your business</button>
                                     <button className="pill-btn secondary">Learn more</button>
                                 </div>
                             </div>

@@ -175,6 +175,7 @@ function App() {
         suggestions={businesses}
         onSearch={(q) => setSearchQuery(q)}
         onSelectSuggestion={handleSuggestionSelect}
+        onAddBusiness={() => setIsAddBusinessOpen(true)}
         onProfileClick={() => {
           if (isAuthenticated) {
             setIsProfileOpen(true);
