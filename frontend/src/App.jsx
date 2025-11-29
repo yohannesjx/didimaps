@@ -271,7 +271,7 @@ function App() {
               ignoreMapMoveRef.current = true;
               setSelectedBusiness(business);
             }}
-            isVisible={isSidebarVisible && !isProfileOpen}
+            isVisible={isSidebarVisible && !isProfileOpen && !selectedBusiness}
             onClose={() => setIsSidebarVisible(false)}
           />
 
