@@ -34,26 +34,11 @@ services:
     command: ["osrm-routed", "--algorithm", "mld", "/data/addis-ababa.osrm"]
     restart: unless-stopped
 
-  nominatim:
-    image: mediagis/nominatim:4.4
-    container_name: nominatim
-    environment:
-      - PBF_URL=https://download.geofabrik.de/africa/ethiopia-latest.osm.pbf
-      - IMPORT_WIKIPEDIA=false
-      - NOMINATIM_PASSWORD=nominatim
-    volumes:
-      - nominatim-data:/var/lib/postgresql/14/main
-    expose:
-      - "8080"
-    shm_size: 1g
-    restart: unless-stopped
-
   api:
     build: ./api
     container_name: api
     environment:
       - OSRM_HOST=http://osrm:5000
-      - GEOCODER_HOST=http://nominatim:8080
       - TILE_HOST=http://tileserver:8000
       - JWT_SECRET=${JWT_SECRET:-CHANGE_ME_IN_PRODUCTION}
       - RATE_LIMIT=100
@@ -68,7 +53,6 @@ services:
       - "8000"
     depends_on:
       - osrm
-      - nominatim
       - tileserver
       - postgres
     restart: unless-stopped
@@ -108,7 +92,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  nominatim-data:
   caddy-data:
   caddy-config:
   postgres-data:
