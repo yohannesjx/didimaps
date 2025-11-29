@@ -152,7 +152,10 @@ function App() {
     setIsProfileOpen(false);
   };
 
+  const ignoreMapMoveRef = useRef(false);
+
   const handleSuggestionSelect = (business) => {
+    ignoreMapMoveRef.current = true; // Prevent auto-fetch on map move
     setSelectedBusiness(business);
     setMapCenter({ lat: business.lat, lng: business.lng });
     setMapZoom(16);
@@ -170,6 +173,12 @@ function App() {
   const handleMapMove = ({ lat, lng, zoom }) => {
     setMapCenter({ lat, lng });
     setMapZoom(zoom);
+
+    if (ignoreMapMoveRef.current) {
+      ignoreMapMoveRef.current = false;
+      return;
+    }
+
     fetchBusinesses(lat, lng, zoom);
   };
 
