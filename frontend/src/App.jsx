@@ -25,6 +25,9 @@ function App() {
   const [pickedLocation, setPickedLocation] = useState(null);
 
   const [businesses, setBusinesses] = useState([]);
+  useEffect(() => {
+    console.log('Businesses state updated:', businesses.length);
+  }, [businesses]);
   const [loading, setLoading] = useState(false);
 
   const [categories, setCategories] = useState([]);
@@ -62,39 +65,30 @@ function App() {
 
   // Fetch businesses from API
   const fetchBusinesses = async (lat, lng, zoom = 15, categoryId = null, queryOverride = null) => {
+    console.log('fetchBusinesses called:', { lat, lng, zoom, categoryId, queryOverride, searchQuery });
     setLoading(true);
     try {
       let url;
       if (categoryId) {
-        // Fetch by Category
-        // Ensure we send a query so Nominatim works too
         const q = queryOverride || searchQuery || '';
         url = `/api/business/search?category_id=${categoryId}&lat=${lat}&lng=${lng}&q=${encodeURIComponent(q)}`;
       } else if (searchQuery) {
-        // Hybrid Search (Local + Nominatim)
         url = `/api/business/search?q=${encodeURIComponent(searchQuery)}&lat=${lat}&lng=${lng}`;
       } else {
-        // ... existing logic ...
         let radius = 5000;
         let limit = 50;
-
-        if (zoom >= 16) {
-          radius = 1000;
-          limit = 100;
-        } else if (zoom >= 14) {
-          radius = 5000;
-          limit = 50;
-        } else {
-          radius = 20000;
-          limit = 20;
-        }
+        if (zoom >= 16) { radius = 1000; limit = 100; }
+        else if (zoom >= 14) { radius = 5000; limit = 50; }
+        else { radius = 20000; limit = 20; }
         url = `/api/business/nearby?lat=${lat}&lng=${lng}&radius=${radius}&limit=${limit}`;
       }
 
+      console.log('Fetching URL:', url);
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch');
 
       const data = await response.json();
+      console.log('API Response businesses:', data.businesses?.length);
       setBusinesses(data.businesses || []);
     } catch (error) {
       console.error('Error fetching businesses:', error);
