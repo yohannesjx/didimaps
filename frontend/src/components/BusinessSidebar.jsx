@@ -5,10 +5,10 @@ import './BusinessSidebar.css?v=2';
 export default function BusinessSidebar({ businesses, selectedBusiness, onSelectBusiness, isVisible, onClose }) {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    // Auto-expand when a business is selected on mobile
+    // Collapse when a business is selected so Details panel can show
     useEffect(() => {
-        if (selectedBusiness && window.innerWidth <= 768) {
-            setIsExpanded(true);
+        if (selectedBusiness) {
+            setIsExpanded(false);
         }
     }, [selectedBusiness]);
 
