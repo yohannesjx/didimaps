@@ -292,8 +292,8 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
     const markers = useRef([]);
     const userMarkerRef = useRef(null);
     const hasCenteredRef = useRef(false);
-    const [styleMode, setStyleMode] = useState('dark');
-    const [is3D, setIs3D] = useState(true);
+    const [styleMode, setStyleMode] = useState('light');
+    const [is3D, setIs3D] = useState(false);
     const [showLayerMenu, setShowLayerMenu] = useState(false);
 
     useEffect(() => {
@@ -302,11 +302,11 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         map.current = new maplibregl.Map({
             // ... (init options)
             container: mapContainer.current,
-            style: getStyle('dark'),
+            style: getStyle('light'),
             center: [38.7578, 8.9806],
             zoom: 15,
             maxZoom: 18,
-            pitch: 45,
+            pitch: 0,
             padding: { left: window.innerWidth > 768 ? 360 : 0 },
             attributionControl: false,
         });
@@ -603,7 +603,7 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
         <div className="map-wrapper" style={{ position: 'relative', width: '100%', height: '100vh' }}>
             <div ref={mapContainer} className="map-container" />
 
-            {/* Top Right Controls */}
+            {/* Map Controls Group */}
             <div className="map-controls-group">
                 {/* Layer Switcher */}
                 <div className="layer-switcher-container">
@@ -623,6 +623,8 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
                     </div>
                 </div>
 
+                <div className="controls-separator" />
+
                 {/* 3D Toggle */}
                 <button
                     className="map-control-btn"
@@ -631,16 +633,18 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
                 >
                     <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{is3D ? '2D' : '3D'}</span>
                 </button>
-            </div>
 
-            {/* Locate Me Button */}
-            <button
-                className="map-control-btn locate-btn"
-                onClick={handleLocateMe}
-                title="Locate Me"
-            >
-                🎯
-            </button>
+                <div className="controls-separator" />
+
+                {/* Locate Me Button */}
+                <button
+                    className="map-control-btn"
+                    onClick={handleLocateMe}
+                    title="Locate Me"
+                >
+                    🎯
+                </button>
+            </div>
         </div>
     );
 }
