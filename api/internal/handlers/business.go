@@ -602,12 +602,17 @@ func SearchBusinesses(db *sql.DB, cfg *config.Config) http.HandlerFunc {
 		// Base condition
 		whereClauses = append(whereClauses, "b.status = 'verified'")
 
+		// 1. Restrict to Addis Ababa (Approximate Bounding Box)
+		// Lat: 8.80 to 9.10, Lng: 38.60 to 38.95
+		whereClauses = append(whereClauses, "b.lat BETWEEN 8.80 AND 9.10 AND b.lng BETWEEN 38.60 AND 38.95")
+
 		// Add ILIKE condition for EACH term (AND logic)
-		// This ensures every typed word appears somewhere in the name/description
+		// This ensures every typed word appears somewhere in the name, description, OR CATEGORY
 		for i, term := range terms {
 			// $1, $2, etc.
 			placeholder := fmt.Sprintf("$%d", i+1)
-			clause := fmt.Sprintf("(b.name ILIKE '%%' || %s || '%%' OR b.name_am ILIKE '%%' || %s || '%%' OR b.description ILIKE '%%' || %s || '%%')", placeholder, placeholder, placeholder)
+			// Added c.name to the search fields
+			clause := fmt.Sprintf("(b.name ILIKE '%%' || %s || '%%' OR b.name_am ILIKE '%%' || %s || '%%' OR b.description ILIKE '%%' || %s || '%%' OR c.name ILIKE '%%' || %s || '%%')", placeholder, placeholder, placeholder, placeholder)
 			whereClauses = append(whereClauses, clause)
 			args = append(args, term)
 		}

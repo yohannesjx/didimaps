@@ -72,24 +72,22 @@ export default function SearchBox({ query, onSearch, onProfileClick, suggestions
                             </div>
                         )}
 
-                        {/* Add Business Card (Only when query is empty) */}
-                        {!query && (
-                            <div className="add-business-card">
-                                <div className="add-business-content">
-                                    <div className="add-business-text">
-                                        <h3>Add your business to DiDi Maps</h3>
-                                        <p>Reply to reviews, manage your business info, post offers and more!</p>
-                                    </div>
-                                    <div className="add-business-visual">
-                                        🏪
-                                    </div>
+                        {/* Add Business Card (Always Visible) */}
+                        <div className="add-business-card">
+                            <div className="add-business-content">
+                                <div className="add-business-text">
+                                    <h3>Add your business to DiDi Maps</h3>
+                                    <p>Reply to reviews, manage your business info, post offers and more!</p>
                                 </div>
-                                <div className="add-business-actions">
-                                    <button className="pill-btn primary" onClick={onAddBusiness}>Add your business</button>
-                                    <button className="pill-btn secondary">Learn more</button>
+                                <div className="add-business-visual">
+                                    🏪
                                 </div>
                             </div>
-                        )}
+                            <div className="add-business-actions">
+                                <button className="pill-btn primary" onClick={onAddBusiness}>Add your business</button>
+                                <button className="pill-btn secondary">Learn more</button>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
