@@ -259,6 +259,13 @@
     gap: 8px;
     align-items: center;
     pointer-events: auto;
+    transition: opacity 0.2s ease, visibility 0.2s;
+}
+
+.category-pills-floating.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .category-pill {

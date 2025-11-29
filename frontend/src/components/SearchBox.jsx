@@ -123,7 +123,7 @@ export default function SearchBox({ query, onSearch, onProfileClick, suggestions
             </div>
 
             {/* Floating Category Pills */}
-            <div className="category-pills-floating">
+            <div className={`category-pills-floating ${isFocused || query ? 'hidden' : ''}`}>
                 {pillCategories.map((cat) => (
                     <button
                         key={cat.id}
