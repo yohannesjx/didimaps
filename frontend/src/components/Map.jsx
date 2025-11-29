@@ -180,14 +180,33 @@ const getStyle = (mode) => {
                 'source-layer': 'poi',
                 minzoom: 14,
                 layout: {
-                    'text-field': '{name:latin}',
+                    'text-field': [
+                        'format',
+                        ['match', ['get', 'class'],
+                            'restaurant', '🍴 ',
+                            'fast_food', '🍔 ',
+                            'cafe', '☕ ',
+                            'bar', '🍸 ',
+                            'bank', '🏦 ',
+                            'hotel', '🏨 ',
+                            'hospital', '🏥 ',
+                            'school', '🎓 ',
+                            'shop', '🛍️ ',
+                            'grocery', '🛒 ',
+                            'park', '🌳 ',
+                            ''
+                        ],
+                        { 'font-scale': 1.2 },
+                        ['get', 'name:latin'],
+                        {}
+                    ],
                     'text-font': ['Noto Sans Regular'],
-                    'text-size': 11,
+                    'text-size': 12,
                     'text-anchor': 'top',
                     'text-offset': [0, 0.5]
                 },
                 paint: {
-                    'text-color': isDark ? '#999999' : '#555555',
+                    'text-color': isDark ? '#cccccc' : '#444444',
                     'text-halo-color': isDark ? '#000000' : '#ffffff',
                     'text-halo-width': 1
                 }
@@ -224,22 +243,42 @@ export default function Map({ selectedBusiness, businesses, onMarkerClick, direc
     const [showLayerMenu, setShowLayerMenu] = useState(false);
 
     useEffect(() => {
-        if (map.current) return; // Initialize map only once
+        if (map.current) return;
 
         map.current = new maplibregl.Map({
+            // ... (init options)
             container: mapContainer.current,
             style: getStyle('dark'),
-            center: [38.7578, 8.9806], // Addis Ababa
+            center: [38.7578, 8.9806],
             zoom: 15,
             maxZoom: 18,
             pitch: 45,
-            // Initial padding: 360px left for desktop, 0 for mobile
             padding: { left: window.innerWidth > 768 ? 360 : 0 },
-            attributionControl: false, // Hide default attribution
+            attributionControl: false,
         });
 
-        // Add navigation controls (Zoom in/out) to bottom-right
         map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+
+        // Handle Zoom for LOD (Level of Detail)
+        const handleZoom = () => {
+            const zoom = map.current.getZoom();
+            const markers = document.getElementsByClassName('business-marker');
+            for (let el of markers) {
+                // Hide text/icon if zoomed out too far
+                if (zoom < 14) {
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
+                } else {
+                    el.style.opacity = '1';
+                    el.style.pointerEvents = 'auto';
+                }
+            }
+        };
+        map.current.on('zoom', handleZoom);
+        map.current.on('moveend', handleZoom); // Also check on move end
+
+
+
 
         // Handle window resize to adjust padding dynamically
         const handleResize = () => {
