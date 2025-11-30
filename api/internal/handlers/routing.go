@@ -6,9 +6,10 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"maps/api/internal/config"
-	"maps/api/internal/middleware"
+	"maps/api/internal/routing"
 )
 
 type RouteResponse struct {
@@ -30,55 +31,16 @@ type MatchRequest struct {
 }
 
 func GetRoute(cfg *config.Config) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		from := r.URL.Query().Get("from")
-		to := r.URL.Query().Get("to")
-
-		if from == "" || to == "" {
-			jsonError(w, "from and to parameters required", http.StatusBadRequest)
-			return
-		}
-
-		// Parse and validate coordinates
-		fromParts := strings.Split(from, ",")
-		toParts := strings.Split(to, ",")
-
-		if len(fromParts) != 2 || len(toParts) != 2 {
-			jsonError(w, "invalid coordinate format, use lat,lng", http.StatusBadRequest)
-			return
-		}
-
-		if err := middleware.ValidateCoordinate(fromParts[0], fromParts[1]); err != nil {
-			jsonError(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		if err := middleware.ValidateCoordinate(toParts[0], toParts[1]); err != nil {
-			jsonError(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		// OSRM expects lng,lat format
-		coordinates := fmt.Sprintf("%s,%s;%s,%s", fromParts[1], fromParts[0], toParts[1], toParts[0])
-		osrmURL := fmt.Sprintf("%s/route/v1/driving/%s?overview=full&geometries=polyline", cfg.OSRMHost, coordinates)
-
-		resp, err := http.Get(osrmURL)
-		if err != nil {
-			jsonError(w, "routing service unavailable", http.StatusServiceUnavailable)
-			return
-		}
-		defer resp.Body.Close()
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			jsonError(w, "failed to read routing response", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(resp.StatusCode)
-		w.Write(body)
+	// Initialize routing engine once
+	osrmEngine := &routing.OSRMEngine{
+		BaseURL: cfg.OSRMHost,
+		Client: &http.Client{
+			Timeout: 5 * time.Second,
+		},
 	}
+	routingHandler := routing.NewHandler(osrmEngine)
+
+	return routingHandler.GetRoute
 }
 
 func MatchGPS(cfg *config.Config) http.HandlerFunc {
