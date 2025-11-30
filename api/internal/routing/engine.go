@@ -1,7 +1,6 @@
 package routing
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,10 +16,10 @@ type RoutingEngine interface {
 // RouteResponse is the standardized response format
 // This shape NEVER changes, even when switching engines
 type RouteResponse struct {
-	DistanceMeters  int           `json:"distance_meters"`
-	DurationSeconds int           `json:"duration_seconds"`
-	Geometry        string        `json:"geometry"` // Encoded polyline
-	Steps           []RouteStep   `json:"steps"`
+	DistanceMeters  int         `json:"distance_meters"`
+	DurationSeconds int         `json:"duration_seconds"`
+	Geometry        string      `json:"geometry"` // Encoded polyline
+	Steps           []RouteStep `json:"steps"`
 }
 
 type RouteStep struct {
@@ -43,10 +42,10 @@ type osrmResponse struct {
 }
 
 type osrmRoute struct {
-	Distance float64    `json:"distance"` // meters
-	Duration float64    `json:"duration"` // seconds
-	Geometry string     `json:"geometry"` // polyline
-	Legs     []osrmLeg  `json:"legs"`
+	Distance float64   `json:"distance"` // meters
+	Duration float64   `json:"duration"` // seconds
+	Geometry string    `json:"geometry"` // polyline
+	Legs     []osrmLeg `json:"legs"`
 }
 
 type osrmLeg struct {
@@ -54,9 +53,9 @@ type osrmLeg struct {
 }
 
 type osrmStep struct {
-	Distance float64    `json:"distance"`
-	Duration float64    `json:"duration"`
-	Name     string     `json:"name"`
+	Distance float64      `json:"distance"`
+	Duration float64      `json:"duration"`
+	Name     string       `json:"name"`
 	Maneuver osrmManeuver `json:"maneuver"`
 }
 
@@ -102,7 +101,7 @@ func (e *OSRMEngine) GetRoute(fromLat, fromLon, toLat, toLon float64) (*RouteRes
 
 	// Convert OSRM response to our standard format
 	route := osrmResp.Routes[0]
-	
+
 	steps := make([]RouteStep, 0)
 	if len(route.Legs) > 0 {
 		for _, osrmStep := range route.Legs[0].Steps {
