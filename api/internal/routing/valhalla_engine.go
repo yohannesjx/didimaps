@@ -146,9 +146,111 @@ func (e *ValhallaEngine) GetRoute(fromLat, fromLon, toLat, toLon float64) (*Rout
 	return &RouteResponse{
 		DistanceMeters:  int(leg.Summary.Length * 1000), // km to meters
 		DurationSeconds: int(leg.Summary.Time),
-		Geometry:        leg.Shape, // Valhalla uses encoded polyline6 format
+		Geometry:        convertPolyline6To5(leg.Shape), // Convert polyline6 to polyline5
 		Steps:           steps,
 	}, nil
+}
+
+// convertPolyline6To5 converts Valhalla's polyline6 format to Google's polyline5 format
+func convertPolyline6To5(polyline6 string) string {
+	// Decode polyline6
+	coords := decodePolyline(polyline6, 1e6)
+
+	// Re-encode as polyline5
+	return encodePolyline(coords, 1e5)
+}
+
+// decodePolyline decodes a polyline string with given precision
+func decodePolyline(encoded string, precision float64) [][2]float64 {
+	var coords [][2]float64
+	index := 0
+	lat := 0
+	lng := 0
+
+	for index < len(encoded) {
+		var result int
+		var shift uint
+		var b int
+
+		// Decode latitude
+		for {
+			b = int(encoded[index]) - 63
+			index++
+			result |= (b & 0x1f) << shift
+			shift += 5
+			if b < 0x20 {
+				break
+			}
+		}
+		if result&1 != 0 {
+			lat += ^(result >> 1)
+		} else {
+			lat += result >> 1
+		}
+
+		// Decode longitude
+		result = 0
+		shift = 0
+		for {
+			b = int(encoded[index]) - 63
+			index++
+			result |= (b & 0x1f) << shift
+			shift += 5
+			if b < 0x20 {
+				break
+			}
+		}
+		if result&1 != 0 {
+			lng += ^(result >> 1)
+		} else {
+			lng += result >> 1
+		}
+
+		coords = append(coords, [2]float64{
+			float64(lat) / precision,
+			float64(lng) / precision,
+		})
+	}
+
+	return coords
+}
+
+// encodePolyline encodes coordinates to polyline format with given precision
+func encodePolyline(coords [][2]float64, precision float64) string {
+	var encoded string
+	var prevLat, prevLng int
+
+	for _, coord := range coords {
+		lat := int(coord[0] * precision)
+		lng := int(coord[1] * precision)
+
+		encoded += encodeValue(lat - prevLat)
+		encoded += encodeValue(lng - prevLng)
+
+		prevLat = lat
+		prevLng = lng
+	}
+
+	return encoded
+}
+
+// encodeValue encodes a single value for polyline
+func encodeValue(value int) string {
+	var encoded string
+
+	if value < 0 {
+		value = ^(value << 1)
+	} else {
+		value = value << 1
+	}
+
+	for value >= 0x20 {
+		encoded += string(rune((0x20 | (value & 0x1f)) + 63))
+		value >>= 5
+	}
+
+	encoded += string(rune(value + 63))
+	return encoded
 }
 
 // formatValhallaManeuver converts Valhalla maneuver types to human-readable instructions
