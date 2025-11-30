@@ -12,11 +12,23 @@ maps.didi.et {
         reverse_proxy api:8000
     }
 
-    # Tile server
+    # Tile server - handle both /tiles/* and /api/tiles/*
+    handle /api/tiles/* {
+        uri strip_prefix /api/tiles
+        rewrite * /services/addis/tiles{uri}
+        reverse_proxy tileserver:8000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+        }
+    }
+
     handle /tiles/* {
         uri strip_prefix /tiles
         rewrite * /services/addis/tiles{uri}
-        reverse_proxy tileserver:8000
+        reverse_proxy tileserver:8000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+        }
     }
 
     # Building tiles from PostGIS
