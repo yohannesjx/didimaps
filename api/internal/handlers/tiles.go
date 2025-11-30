@@ -47,7 +47,7 @@ func GetTile(cfg *config.Config) http.HandlerFunc {
 			// Skip hop-by-hop headers
 			if k == "Connection" || k == "Keep-Alive" || k == "Proxy-Authenticate" ||
 				k == "Proxy-Authorization" || k == "Te" || k == "Trailers" ||
-				k == "Transfer-Encoding" || k == "Upgrade" {
+				k == "Transfer-Encoding" || k == "Upgrade" || k == "Content-Encoding" {
 				continue
 			}
 			for _, v := range vv {
