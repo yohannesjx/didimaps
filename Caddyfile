@@ -1,13 +1,4 @@
 maps.didi.et {
-    # Tile server - use handle_path for automatic prefix stripping
-    handle_path /api/tiles/* {
-        rewrite * /services/addis/tiles{uri}
-        reverse_proxy tileserver:8000 {
-            header_up Host {host}
-            header_up X-Real-IP {remote}
-        }
-    }
-
     # API Gateway (general catch-all for other API routes)
     handle /api/* {
         reverse_proxy api:8000
