@@ -1,0 +1,184 @@
+{
+    "version": 8,
+    "name": "Didi Maps - Addis Ababa",
+    "metadata": {
+        "maputnik:renderer": "mbgljs"
+    },
+    "sources": {
+        "openmaptiles": {
+            "type": "vector",
+            "url": "https://maps.didi.et/api/tiles/json"
+        }
+    },
+    "sprite": "https://demotiles.maplibre.org/sprites/osm-bright-gl-style/sprite",
+    "glyphs": "https://demotiles.maplibre.org/fonts/{fontstack}/{range}.pbf",
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#f8f4f0"
+            }
+        },
+        {
+            "id": "water",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "water",
+            "filter": [
+                "==",
+                "$type",
+                "Polygon"
+            ],
+            "paint": {
+                "fill-color": "#a0c8f0",
+                "fill-antialias": true
+            }
+        },
+        {
+            "id": "landuse_park",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landuse",
+            "filter": [
+                "==",
+                "class",
+                "park"
+            ],
+            "paint": {
+                "fill-color": "#d8e8c8"
+            }
+        },
+        {
+            "id": "landuse_residential",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landuse",
+            "filter": [
+                "==",
+                "class",
+                "residential"
+            ],
+            "paint": {
+                "fill-color": "#e0dfdf"
+            }
+        },
+        {
+            "id": "waterway",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "waterway",
+            "paint": {
+                "line-color": "#a0c8f0",
+                "line-width": 2
+            }
+        },
+        {
+            "id": "road_minor",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": [
+                "in",
+                "class",
+                "minor",
+                "service",
+                "track"
+            ],
+            "paint": {
+                "line-color": "#ffffff",
+                "line-width": 2
+            }
+        },
+        {
+            "id": "road_major",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": [
+                "in",
+                "class",
+                "primary",
+                "secondary",
+                "tertiary",
+                "trunk"
+            ],
+            "paint": {
+                "line-color": "#ffffff",
+                "line-width": 3
+            }
+        },
+        {
+            "id": "road_motorway",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": [
+                "==",
+                "class",
+                "motorway"
+            ],
+            "paint": {
+                "line-color": "#fc8",
+                "line-width": 4
+            }
+        },
+        {
+            "id": "building",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "building",
+            "paint": {
+                "fill-color": "#d9d0c9",
+                "fill-outline-color": "#c0c0c0"
+            }
+        },
+        {
+            "id": "place_label_city",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "place",
+            "filter": [
+                "==",
+                "class",
+                "city"
+            ],
+            "layout": {
+                "text-field": "{name}",
+                "text-font": [
+                    "Noto Sans Regular"
+                ],
+                "text-size": 14
+            },
+            "paint": {
+                "text-color": "#333",
+                "text-halo-color": "#fff",
+                "text-halo-width": 2
+            }
+        },
+        {
+            "id": "poi_label",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "poi",
+            "minzoom": 14,
+            "layout": {
+                "text-field": "{name}",
+                "text-font": [
+                    "Noto Sans Regular"
+                ],
+                "text-size": 11,
+                "text-anchor": "top",
+                "text-offset": [
+                    0,
+                    0.5
+                ]
+            },
+            "paint": {
+                "text-color": "#666",
+                "text-halo-color": "#fff",
+                "text-halo-width": 1
+            }
+        }
+    ]
+}

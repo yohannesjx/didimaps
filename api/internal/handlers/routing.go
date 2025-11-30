@@ -31,15 +31,23 @@ type MatchRequest struct {
 }
 
 func GetRoute(cfg *config.Config) http.HandlerFunc {
-	// Initialize routing engine once
-	osrmEngine := &routing.OSRMEngine{
-		BaseURL: cfg.OSRMHost,
-		Client: &http.Client{
-			Timeout: 5 * time.Second,
-		},
-	}
-	routingHandler := routing.NewHandler(osrmEngine)
+	// Initialize routing engine based on configuration
+	var engine routing.RoutingEngine
 
+	if cfg.RoutingEngine == "valhalla" {
+		// Use Valhalla engine
+		engine = routing.NewValhallaEngine(cfg.ValhallaHost)
+	} else {
+		// Default to OSRM engine
+		engine = &routing.OSRMEngine{
+			BaseURL: cfg.OSRMHost,
+			Client: &http.Client{
+				Timeout: 5 * time.Second,
+			},
+		}
+	}
+
+	routingHandler := routing.NewHandler(engine)
 	return routingHandler.GetRoute
 }
 

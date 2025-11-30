@@ -11,6 +11,8 @@ type Config struct {
 	JWTExpiry     int // minutes
 	RefreshExpiry int // hours
 	OSRMHost      string
+	ValhallaHost  string
+	RoutingEngine string // "osrm" or "valhalla"
 	GeocoderHost  string
 	TileHost      string
 	RateLimit     int // requests per minute
@@ -31,6 +33,8 @@ func Load() *Config {
 		JWTExpiry:     getEnvInt("JWT_EXPIRY", 15),
 		RefreshExpiry: getEnvInt("REFRESH_EXPIRY", 168), // 7 days
 		OSRMHost:      getEnv("OSRM_HOST", "http://osrm:5000"),
+		ValhallaHost:  getEnv("VALHALLA_HOST", "http://valhalla:8002"),
+		RoutingEngine: getEnv("ROUTING_ENGINE", "osrm"), // Default to OSRM for backward compatibility
 		GeocoderHost:  getEnv("GEOCODER_HOST", "http://nominatim:8080"),
 		TileHost:      getEnv("TILE_HOST", "http://tileserver:8080"),
 		RateLimit:     getEnvInt("RATE_LIMIT", 100),

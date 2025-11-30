@@ -34,11 +34,24 @@ services:
     command: ["osrm-routed", "--algorithm", "mld", "/data/addis-ababa.osrm"]
     restart: unless-stopped
 
+  valhalla:
+    image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
+    container_name: valhalla
+    volumes:
+      - ./data/valhalla:/data
+    expose:
+      - "8002"
+    environment:
+      - tile_urls=/data/valhalla_tiles
+    restart: unless-stopped
+
   api:
     build: ./api
     container_name: api
     environment:
       - OSRM_HOST=http://osrm:5000
+      - VALHALLA_HOST=http://valhalla:8002
+      - ROUTING_ENGINE=valhalla
       - TILE_HOST=http://tileserver:8000
       - JWT_SECRET=${JWT_SECRET:-CHANGE_ME_IN_PRODUCTION}
       - RATE_LIMIT=100
