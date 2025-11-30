@@ -1,5 +1,15 @@
 maps.didi.et {
-    # API Gateway
+    # Tile server - MUST come before /api/* to avoid being caught by it
+    handle /api/tiles/* {
+        uri strip_prefix /api/tiles
+        rewrite * /services/addis/tiles{uri}
+        reverse_proxy tileserver:8000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+        }
+    }
+
+    # API Gateway (general catch-all for other API routes)
     handle /api/* {
         reverse_proxy api:8000
     }
@@ -10,16 +20,6 @@ maps.didi.et {
 
     handle /health {
         reverse_proxy api:8000
-    }
-
-    # Tile server - handle both /tiles/* and /api/tiles/*
-    handle /api/tiles/* {
-        uri strip_prefix /api/tiles
-        rewrite * /services/addis/tiles{uri}
-        reverse_proxy tileserver:8000 {
-            header_up Host {host}
-            header_up X-Real-IP {remote}
-        }
     }
 
     handle /tiles/* {
