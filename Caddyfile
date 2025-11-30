@@ -1,7 +1,6 @@
 maps.didi.et {
-    # Tile server - MUST come before /api/* to avoid being caught by it
-    handle /api/tiles/* {
-        uri strip_prefix /api/tiles
+    # Tile server - use handle_path for automatic prefix stripping
+    handle_path /api/tiles/* {
         rewrite * /services/addis/tiles{uri}
         reverse_proxy tileserver:8000 {
             header_up Host {host}
@@ -22,8 +21,7 @@ maps.didi.et {
         reverse_proxy api:8000
     }
 
-    handle /tiles/* {
-        uri strip_prefix /tiles
+    handle_path /tiles/* {
         rewrite * /services/addis/tiles{uri}
         reverse_proxy tileserver:8000 {
             header_up Host {host}
