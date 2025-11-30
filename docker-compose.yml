@@ -38,11 +38,9 @@ services:
     image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
     container_name: valhalla
     volumes:
-      - ./data/valhalla:/data
-    expose:
-      - "8002"
-    environment:
-      - tile_urls=/data/valhalla_tiles
+      - ./data/valhalla/custom_files:/custom_files
+    ports:
+      - "8002:8002"
     restart: unless-stopped
 
   api:
