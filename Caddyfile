@@ -8,10 +8,6 @@ maps.didi.et {
         reverse_proxy api:8000
     }
 
-    handle /route {
-        reverse_proxy api:8000
-    }
-
     handle /health {
         reverse_proxy api:8000
     }
