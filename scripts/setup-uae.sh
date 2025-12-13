@@ -7,10 +7,9 @@ set -e
 # Configuration
 PROJECT_DIR="${PROJECT_DIR:-/root/map/didimaps}"
 DATA_DIR="$PROJECT_DIR/data"
-# Using different source/mirror for UAE data if Geofabrik fails or redirects
-# Geofabrik sometimes limits downloads differently or redirects.
-# Trying internal Geofabrik download link or alternative.
-UAE_PBF_URL="https://download.geofabrik.de/asia/united-arab-emirates-latest.osm.pbf"
+# Trying alternative mirror: OpenStreetMap France
+# Often more reliable for direct downloads
+UAE_PBF_URL="https://download.openstreetmap.fr/extracts/asia/united_arab_emirates-latest.osm.pbf"
 UAE_PBF_FILE="uae-latest.osm.pbf"
 ETH_PBF_FILE="ethiopia-latest.osm.pbf" # Existing file
 OUTPUT_FILE="addis.mbtiles" # We overwrite the default file so config remains valid
@@ -25,22 +24,26 @@ log "=== Starting Combined Map Data Setup ==="
 # Ensure directories exist
 mkdir -p "$DATA_DIR/osrm" "$DATA_DIR/tiles"
 
-# 1. Download UAE PBF - Try with specific User-Agent to avoid blocks/redirects
-log "Downloading UAE OSM data..."
+# 1. Download UAE PBF
+log "Downloading UAE OSM data from OpenStreetMap France mirror..."
 # -L allows following redirects
 # -f fails on HTTP errors
-# User-Agent mimics a browser slightly to be safe
-curl -L -f -A "Mozilla/5.0" -o "$DATA_DIR/osrm/$UAE_PBF_FILE.new" "$UAE_PBF_URL"
+curl -L -f -o "$DATA_DIR/osrm/$UAE_PBF_FILE.new" "$UAE_PBF_URL"
 
 # Check if download succeeded
 FILE_SIZE=$(stat -c%s "$DATA_DIR/osrm/$UAE_PBF_FILE.new" 2>/dev/null || stat -f%z "$DATA_DIR/osrm/$UAE_PBF_FILE.new")
 
-# Validate file size (should be >10MB, UAE is usually around 50-100MB)
+# Validate file size (should be >10MB)
 if [ "$FILE_SIZE" -lt 10000000 ]; then
     log "ERROR: Downloaded file too small ($FILE_SIZE bytes). Aborting."
     log "Content of small file (first 100 bytes):"
     head -c 100 "$DATA_DIR/osrm/$UAE_PBF_FILE.new"
     rm -f "$DATA_DIR/osrm/$UAE_PBF_FILE.new"
+    
+    # Fallback to BBBike if OSM-Fr fails?
+    # log "Trying fallback mirror..."
+    # Warning: BBBike often requires email or has complex URLs.
+    # Exiting for now.
     exit 1
 fi
 mv "$DATA_DIR/osrm/$UAE_PBF_FILE.new" "$DATA_DIR/osrm/$UAE_PBF_FILE"
