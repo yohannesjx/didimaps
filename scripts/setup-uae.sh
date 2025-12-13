@@ -7,6 +7,9 @@ set -e
 # Configuration
 PROJECT_DIR="${PROJECT_DIR:-/root/map/didimaps}"
 DATA_DIR="$PROJECT_DIR/data"
+# Using different source/mirror for UAE data if Geofabrik fails or redirects
+# Geofabrik sometimes limits downloads differently or redirects.
+# Trying internal Geofabrik download link or alternative.
 UAE_PBF_URL="https://download.geofabrik.de/asia/united-arab-emirates-latest.osm.pbf"
 UAE_PBF_FILE="uae-latest.osm.pbf"
 ETH_PBF_FILE="ethiopia-latest.osm.pbf" # Existing file
@@ -22,14 +25,21 @@ log "=== Starting Combined Map Data Setup ==="
 # Ensure directories exist
 mkdir -p "$DATA_DIR/osrm" "$DATA_DIR/tiles"
 
-# 1. Download UAE PBF
+# 1. Download UAE PBF - Try with specific User-Agent to avoid blocks/redirects
 log "Downloading UAE OSM data..."
-curl -L -o "$DATA_DIR/osrm/$UAE_PBF_FILE.new" "$UAE_PBF_URL"
+# -L allows following redirects
+# -f fails on HTTP errors
+# User-Agent mimics a browser slightly to be safe
+curl -L -f -A "Mozilla/5.0" -o "$DATA_DIR/osrm/$UAE_PBF_FILE.new" "$UAE_PBF_URL"
 
 # Check if download succeeded
 FILE_SIZE=$(stat -c%s "$DATA_DIR/osrm/$UAE_PBF_FILE.new" 2>/dev/null || stat -f%z "$DATA_DIR/osrm/$UAE_PBF_FILE.new")
-if [ "$FILE_SIZE" -lt 1000000 ]; then
+
+# Validate file size (should be >10MB, UAE is usually around 50-100MB)
+if [ "$FILE_SIZE" -lt 10000000 ]; then
     log "ERROR: Downloaded file too small ($FILE_SIZE bytes). Aborting."
+    log "Content of small file (first 100 bytes):"
+    head -c 100 "$DATA_DIR/osrm/$UAE_PBF_FILE.new"
     rm -f "$DATA_DIR/osrm/$UAE_PBF_FILE.new"
     exit 1
 fi
@@ -51,12 +61,6 @@ log "Generating combined vector tiles..."
 
 if [ -f "$PROJECT_DIR/planetiler/planetiler.jar" ]; then
     cd "$PROJECT_DIR/planetiler"
-    
-    # We remove --bounds to allow both regions. Or calculate combined bounds?
-    # Planetiler auto-calculates if bounds not provided? Or defaults to planet?
-    # Providing bounds speeds it up. 
-    # Approx combined bounds (Eth + UAE)? They are separate.
-    # Disabling bounds argument to let it process all input PBFs.
     
     java -Xmx8g -jar planetiler.jar \
         $ARGS \
