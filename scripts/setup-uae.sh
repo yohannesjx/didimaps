@@ -7,12 +7,12 @@ set -e
 # Configuration
 PROJECT_DIR="${PROJECT_DIR:-/root/map/didimaps}"
 DATA_DIR="$PROJECT_DIR/data"
-# Trying alternative mirror: OpenStreetMap France
-# Often more reliable for direct downloads
+# Using OpenStreetMap France mirror
 UAE_PBF_URL="https://download.openstreetmap.fr/extracts/asia/united_arab_emirates-latest.osm.pbf"
 UAE_PBF_FILE="uae-latest.osm.pbf"
 ETH_PBF_FILE="ethiopia-latest.osm.pbf" # Existing file
-OUTPUT_FILE="addis.mbtiles" # We overwrite the default file so config remains valid
+OUTPUT_FILE="addis.mbtiles" # Final output
+TEMP_OUTPUT_FILE="addis_temp.mbtiles" # Temporary output file (must end in .mbtiles)
 
 # Logging
 log() {
@@ -39,11 +39,6 @@ if [ "$FILE_SIZE" -lt 10000000 ]; then
     log "Content of small file (first 100 bytes):"
     head -c 100 "$DATA_DIR/osrm/$UAE_PBF_FILE.new"
     rm -f "$DATA_DIR/osrm/$UAE_PBF_FILE.new"
-    
-    # Fallback to BBBike if OSM-Fr fails?
-    # log "Trying fallback mirror..."
-    # Warning: BBBike often requires email or has complex URLs.
-    # Exiting for now.
     exit 1
 fi
 mv "$DATA_DIR/osrm/$UAE_PBF_FILE.new" "$DATA_DIR/osrm/$UAE_PBF_FILE"
@@ -65,20 +60,22 @@ log "Generating combined vector tiles..."
 if [ -f "$PROJECT_DIR/planetiler/planetiler.jar" ]; then
     cd "$PROJECT_DIR/planetiler"
     
+    # Planetiler requires .mbtiles extension to infer format
     java -Xmx8g -jar planetiler.jar \
         $ARGS \
         --download \
-        --output="$DATA_DIR/tiles/$OUTPUT_FILE.new" \
+        --output="$DATA_DIR/tiles/$TEMP_OUTPUT_FILE" \
+        --force \
         --min-zoom=0 \
         --max-zoom=14
         
-    log "Tiles generated at $DATA_DIR/tiles/$OUTPUT_FILE.new"
+    log "Tiles generated at $DATA_DIR/tiles/$TEMP_OUTPUT_FILE"
     
     # Backup old file
     if [ -f "$DATA_DIR/tiles/$OUTPUT_FILE" ]; then
         mv "$DATA_DIR/tiles/$OUTPUT_FILE" "$DATA_DIR/tiles/$OUTPUT_FILE.bak"
     fi
-    mv "$DATA_DIR/tiles/$OUTPUT_FILE.new" "$DATA_DIR/tiles/$OUTPUT_FILE"
+    mv "$DATA_DIR/tiles/$TEMP_OUTPUT_FILE" "$DATA_DIR/tiles/$OUTPUT_FILE"
     
     log "Restarting tileserver..."
     cd "$PROJECT_DIR"
