@@ -1,0 +1,84 @@
+#!/bin/bash
+# Script to add UAE map data to the existing map (Ethiopia/Addis)
+# Run this on your map server (VPS)
+
+set -e
+
+# Configuration
+PROJECT_DIR="${PROJECT_DIR:-/root/map/didimaps}"
+DATA_DIR="$PROJECT_DIR/data"
+UAE_PBF_URL="https://download.geofabrik.de/asia/united-arab-emirates-latest.osm.pbf"
+UAE_PBF_FILE="uae-latest.osm.pbf"
+ETH_PBF_FILE="ethiopia-latest.osm.pbf" # Existing file
+OUTPUT_FILE="addis.mbtiles" # We overwrite the default file so config remains valid
+
+# Logging
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+log "=== Starting Combined Map Data Setup ==="
+
+# Ensure directories exist
+mkdir -p "$DATA_DIR/osrm" "$DATA_DIR/tiles"
+
+# 1. Download UAE PBF
+log "Downloading UAE OSM data..."
+curl -L -o "$DATA_DIR/osrm/$UAE_PBF_FILE.new" "$UAE_PBF_URL"
+
+# Check if download succeeded
+FILE_SIZE=$(stat -c%s "$DATA_DIR/osrm/$UAE_PBF_FILE.new" 2>/dev/null || stat -f%z "$DATA_DIR/osrm/$UAE_PBF_FILE.new")
+if [ "$FILE_SIZE" -lt 1000000 ]; then
+    log "ERROR: Downloaded file too small ($FILE_SIZE bytes). Aborting."
+    rm -f "$DATA_DIR/osrm/$UAE_PBF_FILE.new"
+    exit 1
+fi
+mv "$DATA_DIR/osrm/$UAE_PBF_FILE.new" "$DATA_DIR/osrm/$UAE_PBF_FILE"
+log "Download complete: $FILE_SIZE bytes"
+
+# 2. Check for existing Ethiopia data
+ARGS=""
+if [ -f "$DATA_DIR/osrm/$ETH_PBF_FILE" ]; then
+    log "Found existing Ethiopia data. Merging with UAE..."
+    ARGS="--osm-path=$DATA_DIR/osrm/$ETH_PBF_FILE --osm-path=$DATA_DIR/osrm/$UAE_PBF_FILE"
+else
+    log "Ethiopia data not found. Using only UAE data..."
+    ARGS="--osm-path=$DATA_DIR/osrm/$UAE_PBF_FILE"
+fi
+
+# 3. Generate Combined Vector Tiles
+log "Generating combined vector tiles..."
+
+if [ -f "$PROJECT_DIR/planetiler/planetiler.jar" ]; then
+    cd "$PROJECT_DIR/planetiler"
+    
+    # We remove --bounds to allow both regions. Or calculate combined bounds?
+    # Planetiler auto-calculates if bounds not provided? Or defaults to planet?
+    # Providing bounds speeds it up. 
+    # Approx combined bounds (Eth + UAE)? They are separate.
+    # Disabling bounds argument to let it process all input PBFs.
+    
+    java -Xmx8g -jar planetiler.jar \
+        $ARGS \
+        --download \
+        --output="$DATA_DIR/tiles/$OUTPUT_FILE.new" \
+        --min-zoom=0 \
+        --max-zoom=14
+        
+    log "Tiles generated at $DATA_DIR/tiles/$OUTPUT_FILE.new"
+    
+    # Backup old file
+    if [ -f "$DATA_DIR/tiles/$OUTPUT_FILE" ]; then
+        mv "$DATA_DIR/tiles/$OUTPUT_FILE" "$DATA_DIR/tiles/$OUTPUT_FILE.bak"
+    fi
+    mv "$DATA_DIR/tiles/$OUTPUT_FILE.new" "$DATA_DIR/tiles/$OUTPUT_FILE"
+    
+    log "Restarting tileserver..."
+    cd "$PROJECT_DIR"
+    docker-compose restart tileserver
+    
+    log "Map update complete. The map now serves combined data."
+else
+    log "ERROR: planetiler.jar not found at $PROJECT_DIR/planetiler/planetiler.jar"
+    exit 1
+fi
